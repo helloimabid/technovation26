@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
 
     const { databases } = getAdminClient();
     const segmentDoc = await databases.getDocument(env.databaseId, env.collections.segments, parsed.data.segmentId);
-    const segment = serialize(segmentDoc) as Segment;
+    const segment = serialize(segmentDoc) as unknown as Segment;
 
     const normalizedTeamMemberUserIds = Array.from(
       new Set(
