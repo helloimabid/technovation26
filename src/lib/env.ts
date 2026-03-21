@@ -1,0 +1,17 @@
+export const env = {
+  endpoint: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "",
+  projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "",
+  apiKey: process.env.APPWRITE_API_KEY || "",
+  databaseId: process.env.APPWRITE_DATABASE_ID || "tecnovation26",
+  bucketId: process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || "profile_pics",
+  jwtSecret: process.env.APP_JWT_SECRET || "please-change-me",
+  collections: {
+    usersProfiles: process.env.APPWRITE_COL_USERS_PROFILES || "users_profiles",
+    segments: process.env.APPWRITE_COL_SEGMENTS || "segments",
+    registrations: process.env.APPWRITE_COL_REGISTRATIONS || "registrations",
+    ambassadors: process.env.APPWRITE_COL_AMBASSADORS || "ambassadors",
+    packages: process.env.APPWRITE_COL_PACKAGES || "packages",
+    purchases: process.env.APPWRITE_COL_PURCHASES || "purchases",
+    contentBlocks: process.env.APPWRITE_COL_CONTENT_BLOCKS || "content_blocks",
+  },
+};
