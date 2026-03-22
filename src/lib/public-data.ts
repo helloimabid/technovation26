@@ -1,4 +1,5 @@
 import { Query } from "node-appwrite";
+import { unstable_noStore as noStore } from "next/cache";
 import { getAdminClient } from "@/lib/appwrite/server";
 import { env } from "@/lib/env";
 import { ContentBlock, Package, Segment } from "@/types/models";
@@ -68,6 +69,8 @@ function parseIncludedSegmentIds(value: unknown): string[] {
 }
 
 export async function getPublicData() {
+  noStore();
+
   const fallback = {
     segments: [] as Segment[],
     packages: [] as Package[],
@@ -176,6 +179,9 @@ export async function getPublicData() {
 }
 
 export async function getSegmentById(id: string): Promise<Segment | null> {
+  // Segment details can be edited from admin; avoid serving stale cached pages.
+  noStore();
+
   if (!env.endpoint || !env.projectId || !env.apiKey || !env.databaseId) {
     return null;
   }
