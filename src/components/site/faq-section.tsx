@@ -15,21 +15,21 @@ export function FaqSection({
 }) {
   return (
     <section id="faq" className="overflow-hidden bg-white px-4 py-16 text-[#333] relative z-10 sm:px-6 md:px-12 md:py-24">
-      <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:gap-24">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] xl:gap-24">
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6 }}
-          className="w-full lg:w-1/3"
+          className="w-full min-w-0"
         >
-          <h2 className="whitespace-nowrap font-[var(--font-anton)] text-[clamp(2.5rem,8vw,4.5rem)] uppercase tracking-wider text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
+          <h2 className="max-w-full text-pretty font-[var(--font-anton)] text-[clamp(2.5rem,7vw,5rem)] uppercase leading-[0.9] tracking-tight text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
           <p className="font-[var(--font-inter)] text-lg md:text-xl text-[#06061b]/70 font-medium leading-relaxed max-w-sm">
             {description ?? "Find answers to common questions about the event, registration, and participation rules."}
           </p>
         </motion.div>
 
-        <div className="flex w-full flex-col lg:w-2/3">
+        <div className="flex w-full min-w-0 flex-col">
           {items.map((item, idx) => (
             <motion.details 
               key={item.question} 
