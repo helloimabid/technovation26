@@ -13,7 +13,7 @@ export function AboutSection({
 }) {
   return (
     <>
-      <section id="about" className="bg-[#6972fd] py-24 md:py-36 px-6 md:px-12 flex items-center justify-center text-center md:text-left relative z-10 overflow-hidden">
+      <section id="about" className="relative z-10 flex items-center justify-center overflow-hidden border-y border-white/10 bg-[#3825a8] px-4 py-20 text-center sm:px-6 md:px-12 md:py-32 md:text-left">
         <motion.div 
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -37,14 +37,14 @@ export function AboutSection({
         <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-[600px] h-[600px] bg-black/10 rounded-full blur-[80px] pointer-events-none" />
       </section>
 
-      <section className="bg-[#6972fd] pb-24 md:pb-36 px-6 md:px-12 border-b-2 border-white relative z-10">
+      <section className="relative z-10 border-b border-white/20 bg-[#3825a8] px-4 pb-20 sm:px-6 md:px-12 md:pb-32">
         <div className="max-w-6xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative w-full aspect-video rounded-3xl overflow-hidden bg-[#06061b] shadow-[0_20px_60px_rgba(0,0,0,0.4)] border border-white/20 group"
+            className="group relative aspect-video w-full overflow-hidden border border-white/25 bg-[#030207] shadow-[0_18px_50px_rgba(3,2,7,0.55)]"
           >
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#06061b] to-[#12132b]">
              

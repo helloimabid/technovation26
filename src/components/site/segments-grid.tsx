@@ -30,7 +30,7 @@ export function SegmentsGrid({
   ctaLabel?: string;
 }) {
   return (
-    <section id="segments" className="py-24 md:py-32 px-6 md:px-12 bg-white/5 border-t border-white/5 relative z-10 overflow-hidden">
+    <section id="segments" className="relative z-10 overflow-hidden border-t border-white/10 bg-[#030207] px-4 py-20 sm:px-6 md:px-12 md:py-32">
       <div className="max-w-7xl mx-auto flex flex-col gap-16">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ export function SegmentsGrid({
           transition={{ duration: 0.6 }}
           className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8"
         >
-          <h2 className="whitespace-nowrap font-[var(--font-anton)] text-[clamp(2.5rem,8vw,4.5rem)] uppercase tracking-wider text-white">Our Segments</h2>
+          <h2 className="font-[var(--font-anton)] text-[clamp(2.5rem,8vw,5rem)] uppercase leading-none tracking-[-0.03em] text-white">Our Segments</h2>
           <a href="/register" className="bg-[#6972fd] hover:bg-[#5b63ea] text-white px-8 py-4 text-xs font-bold tracking-[0.15em] uppercase font-[var(--font-inter)] transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(105,114,253,0.3)] hover:shadow-[0_0_30px_rgba(105,114,253,0.6)]">
             {ctaLabel ?? "REGISTER NOW"}
           </a>
@@ -59,7 +59,7 @@ export function SegmentsGrid({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-[#06061b] rounded-xl overflow-hidden border border-white/10 group cursor-pointer hover:border-[#6972fd]/50 transition-all duration-500 hover:shadow-[0_10px_40px_rgba(105,114,253,0.15)] hover:-translate-y-2"
+                className="group cursor-pointer overflow-hidden border border-white/15 bg-[#080612] transition-all duration-500 hover:-translate-y-1 hover:border-[#6f22d9]/70 hover:shadow-[0_14px_36px_rgba(111,34,217,0.22)]"
               >
                 <div className="aspect-[4/3] w-full relative overflow-hidden bg-gray-900">
                   {imageUrl ? (

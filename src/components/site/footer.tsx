@@ -12,7 +12,7 @@ export function Footer({
   policyUrl?: string;
 }) {
   return (
-    <footer className="relative z-10 flex flex-col items-center justify-between overflow-hidden border-t border-white/10 bg-[#06061b] px-4 py-16 sm:px-6 md:px-12 md:py-24">
+    <footer className="relative z-10 flex flex-col items-center justify-between overflow-hidden border-t border-white/15 bg-[#030207] px-4 py-16 sm:px-6 md:px-12 md:py-24">
       <div className="relative my-4 flex min-h-24 w-full max-w-7xl items-center justify-center px-2 opacity-40 sm:min-h-32 md:min-h-40">
         <h1 className="max-w-full text-center font-[var(--font-anton)] text-[clamp(2.5rem,11vw,10rem)] uppercase leading-[0.82] tracking-[-0.03em] text-white">
           {brandText ?? "TECNOVATION'26"}

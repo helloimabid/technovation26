@@ -109,7 +109,7 @@ export function Navbar() {
   ] as const;
 
   return (
-    <nav className="absolute inset-x-0 top-0 z-50 px-4 py-4 sm:px-6 md:px-12 md:py-6" aria-label="Main navigation">
+    <nav className="absolute inset-x-0 top-0 z-50 px-4 py-5 sm:px-6 md:px-12 md:py-8" aria-label="Main navigation">
       <div className="flex items-center justify-between gap-3">
         <Link href="/" className="relative z-10 flex min-w-0 items-center gap-3" onClick={() => setMobileNavOpen(false)}>
           <Image
@@ -122,7 +122,7 @@ export function Navbar() {
           />
         </Link>
 
-        <div className="hidden items-center gap-5 rounded-full border border-white/10 bg-white/15 px-6 py-3 text-xs font-medium uppercase tracking-[0.15em] text-white backdrop-blur-md lg:flex xl:gap-8">
+        <div className="hidden items-center gap-5 border-y border-white/25 bg-black/20 px-6 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white backdrop-blur-md lg:flex xl:gap-8">
           {navLinks.map(([label, href]) => (
             <Link key={href} href={href} className="whitespace-nowrap transition-colors hover:text-white/70">{label}</Link>
           ))}
@@ -155,7 +155,7 @@ export function Navbar() {
               )}
             </div>
           ) : (
-            <Link href="/login" className="whitespace-nowrap rounded-full bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#06061b] sm:px-5">Login</Link>
+            <Link href="/login" className="whitespace-nowrap border border-white/40 bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#030207] transition-colors hover:bg-[#d8d3e7] sm:px-5">Login</Link>
           )}
 
           <button
