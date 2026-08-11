@@ -14,14 +14,14 @@ export function FaqSection({
   description?: string;
 }) {
   return (
-    <section id="faq" className="py-24 md:py-32 px-6 md:px-12 bg-white text-[#333] relative z-10 overflow-hidden">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24">
+    <section id="faq" className="overflow-hidden bg-white px-4 py-16 text-[#333] relative z-10 sm:px-6 md:px-12 md:py-24">
+      <div className="mx-auto flex max-w-7xl flex-col gap-12 lg:flex-row lg:gap-24">
         <motion.div 
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.6 }}
-          className="md:w-1/3"
+          className="w-full lg:w-1/3"
         >
           <h2 className="whitespace-nowrap font-[var(--font-anton)] text-[clamp(2.5rem,8vw,4.5rem)] uppercase tracking-wider text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
           <p className="font-[var(--font-inter)] text-lg md:text-xl text-[#06061b]/70 font-medium leading-relaxed max-w-sm">
@@ -29,7 +29,7 @@ export function FaqSection({
           </p>
         </motion.div>
 
-        <div className="md:w-2/3 flex flex-col">
+        <div className="flex w-full flex-col lg:w-2/3">
           {items.map((item, idx) => (
             <motion.details 
               key={item.question} 

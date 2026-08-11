@@ -22,7 +22,7 @@ export function AboutSection({
           className="max-w-5xl mx-auto flex flex-col gap-8 md:gap-12 relative z-10"
         >
           <p className="font-[var(--font-inter)] text-3xl md:text-4xl lg:text-[2.5rem] leading-tight md:leading-snug text-white/90">
-            <span className="whitespace-nowrap font-[var(--font-anton)] text-white uppercase tracking-wider text-[clamp(2.5rem,7vw,3.5rem)] drop-shadow-lg">
+            <span className="block max-w-full whitespace-nowrap font-[var(--font-anton)] text-[clamp(2rem,7vw,3.5rem)] uppercase tracking-[-0.03em] text-white drop-shadow-lg sm:inline">
               {highlightTitle ?? "TECNOVATION'26 DHAKA"}
             </span>{" "}
             {highlightBody ?? "will inspire you to think bigger about the way you code and design. Join us for never-before-seen tech showcases, intense competitions, sessions from industry leaders, and a community of innovators."}
@@ -48,7 +48,7 @@ export function AboutSection({
           >
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#06061b] to-[#12132b]">
              
-              <p className="font-[var(--font-anton)] text-4xl md:text-6xl text-white/10 tracking-widest uppercase absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none">
+              <p className="pointer-events-none absolute bottom-8 left-1/2 max-w-[92%] -translate-x-1/2 whitespace-nowrap text-center font-[var(--font-anton)] text-[clamp(1.25rem,7vw,3.75rem)] uppercase tracking-[0.08em] text-white/10">
                 {teaserCaption ?? "Teaser Coming Soon"}
               </p>
             </div>
