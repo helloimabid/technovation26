@@ -18,6 +18,7 @@ export function Navbar() {
   const [user, setUser] = useState<NavUser | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -98,27 +99,62 @@ export function Navbar() {
     router.refresh();
   };
 
-  return (
-    <nav className="absolute top-0 inset-x-0 z-50 flex items-center justify-between px-6 md:px-12 py-6 bg-transparent">
-      <Link href="/" className="flex items-center gap-3 relative z-10">
-        <Image
-          src="/logo.png"
-          alt="JITC Logo"
-          width={208}
-          height={64}
-          priority
-          className="h-16 md:h-16 w-auto object-contain"
-        />
-      </Link>
+  const navLinks = [
+    ["Home", "/"],
+    ["About", "/about"],
+    ["Events", "/events"],
+    ["Schedule", "/schedule"],
+    ["Gallery", "/gallery"],
+    ["Contact", "/contact"],
+  ] as const;
 
-      <div className="hidden md:flex items-center gap-8 text-white font-[var(--font-inter)] font-medium text-xs tracking-[0.15em] uppercase bg-white/15 px-8 py-3 rounded-full backdrop-blur-md border border-white/10">
-        <Link href="/" className="hover:text-white/70 transition-colors">Home</Link>
-        <Link href="/about" className="hover:text-white/70 transition-colors">About</Link>
-        <Link href="/events" className="hover:text-white/70 transition-colors">Events</Link>
-        <Link href="/schedule" className="hover:text-white/70 transition-colors">Schedule</Link>
-        <Link href="/gallery" className="hover:text-white/70 transition-colors">Gallery</Link>
-        <Link href="/contact" className="hover:text-white/70 transition-colors">Contact</Link>
+  return (
+    <nav className="absolute inset-x-0 top-0 z-50 px-4 py-4 sm:px-6 md:px-12 md:py-6" aria-label="Main navigation">
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/" className="relative z-10 flex min-w-0 items-center gap-3" onClick={() => setMobileNavOpen(false)}>
+          <Image
+            src="/logo.png"
+            alt="JITC Logo"
+            width={208}
+            height={64}
+            priority
+            className="h-12 w-auto object-contain sm:h-14 md:h-16"
+          />
+        </Link>
+
+        <div className="hidden items-center gap-5 rounded-full border border-white/10 bg-white/15 px-6 py-3 text-xs font-medium uppercase tracking-[0.15em] text-white backdrop-blur-md lg:flex xl:gap-8">
+          {navLinks.map(([label, href]) => (
+            <Link key={href} href={href} className="whitespace-nowrap transition-colors hover:text-white/70">{label}</Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md lg:hidden"
+            aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((previous) => !previous)}
+          >
+            <span className="sr-only">{mobileNavOpen ? "Close menu" : "Open menu"}</span>
+            <span className="flex w-5 flex-col gap-1.5" aria-hidden="true">
+              <span className={`h-0.5 w-full bg-current transition-transform ${mobileNavOpen ? "translate-y-2 rotate-45" : ""}`} />
+              <span className={`h-0.5 w-full bg-current transition-opacity ${mobileNavOpen ? "opacity-0" : ""}`} />
+              <span className={`h-0.5 w-full bg-current transition-transform ${mobileNavOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+            </span>
+          </button>
+        </div>
       </div>
+
+      {mobileNavOpen && (
+        <div className="mt-3 rounded-2xl border border-white/15 bg-[#17172d]/95 p-2 shadow-2xl backdrop-blur-xl lg:hidden">
+          <div className="grid gap-1 sm:grid-cols-2">
+            {navLinks.map(([label, href]) => (
+              <Link key={href} href={href} onClick={() => setMobileNavOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white/85 transition-colors hover:bg-white/10 hover:text-white">{label}</Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {user ? (
         <div ref={menuRef} className="relative z-20">
