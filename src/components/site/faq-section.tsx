@@ -23,7 +23,7 @@ export function FaqSection({
           transition={{ duration: 0.6 }}
           className="md:w-1/3"
         >
-          <h2 className="font-[var(--font-anton)] text-5xl md:text-6xl lg:text-7xl uppercase tracking-wider text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
+          <h2 className="whitespace-nowrap font-[var(--font-anton)] text-[clamp(2.5rem,8vw,4.5rem)] uppercase tracking-wider text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
           <p className="font-[var(--font-inter)] text-lg md:text-xl text-[#06061b]/70 font-medium leading-relaxed max-w-sm">
             {description ?? "Find answers to common questions about the event, registration, and participation rules."}
           </p>

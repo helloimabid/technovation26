@@ -12,7 +12,7 @@ export default async function EventsPage() {
       <Navbar />
       <div className="pt-24 bg-[#06061b]">
         <div className="py-24 px-6 md:px-12 text-center border-b border-white/5 relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 uppercase font-[var(--font-anton)] tracking-wider">
+          <h1 className="whitespace-nowrap text-[clamp(2.25rem,7vw,3rem)] font-bold text-white mb-6 uppercase font-[var(--font-anton)] tracking-wider">
             {content.eventsPageTitle}
           </h1>
           <p className="text-white/70 max-w-2xl mx-auto text-lg leading-relaxed">

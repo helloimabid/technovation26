@@ -128,7 +128,36 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          {user ? (
+            <div ref={menuRef} className="relative z-20">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/10 text-sm font-semibold text-white backdrop-blur-md sm:h-12 sm:w-12"
+                aria-label="Open account menu"
+                aria-expanded={menuOpen}
+              >
+                {profilePicUrl ? <img src={profilePicUrl} alt="Profile" className="h-full w-full object-cover" /> : initials}
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 mt-3 w-56 overflow-hidden rounded-xl border border-white/15 bg-[#2f3040] text-white shadow-2xl">
+                  <div className="border-b border-white/15 px-4 py-3">
+                    <p className="truncate text-sm font-semibold leading-tight">{user.name}</p>
+                    <p className="mt-1 truncate text-xs text-white/70">{user.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10">Profile</Link>
+                    <button type="button" onClick={handleSignOut} className="w-full px-4 py-2.5 text-left text-sm text-white/85 transition-colors hover:bg-white/10">Sign Out</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login" className="whitespace-nowrap rounded-full bg-white px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#06061b] sm:px-5">Login</Link>
+          )}
+
           <button
             type="button"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md lg:hidden"
@@ -156,53 +185,6 @@ export function Navbar() {
         </div>
       )}
 
-      {user ? (
-        <div ref={menuRef} className="relative z-20">
-          <button
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="w-12 h-12 rounded-full border border-white/30 bg-white/10 text-white font-semibold text-sm flex items-center justify-center overflow-hidden backdrop-blur-md"
-            aria-label="Open account menu"
-          >
-            {profilePicUrl ? (
-              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              initials
-            )}
-          </button>
-
-          {menuOpen && (
-            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-white/15 bg-[#2f3040] text-white shadow-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-white/15">
-                <p className="text-sm font-semibold leading-tight truncate">{user.name}</p>
-                <p className="text-xs text-white/70 truncate mt-1">{user.email}</p>
-              </div>
-
-              <div className="py-1">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <Link
-          href="/login"
-          className="bg-white text-[#06061b] px-4 py-2 text-xs uppercase tracking-[0.12em] font-[var(--font-inter)] font-semibold"
-        >
-          Login
-        </Link>
-      )}
     </nav>
   );
 }

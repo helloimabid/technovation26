@@ -39,7 +39,7 @@ export function SegmentsGrid({
           transition={{ duration: 0.6 }}
           className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8"
         >
-          <h2 className="font-[var(--font-anton)] text-5xl md:text-6xl lg:text-7xl uppercase tracking-wider text-white">Our Segments</h2>
+          <h2 className="whitespace-nowrap font-[var(--font-anton)] text-[clamp(2.5rem,8vw,4.5rem)] uppercase tracking-wider text-white">Our Segments</h2>
           <a href="/register" className="bg-[#6972fd] hover:bg-[#5b63ea] text-white px-8 py-4 text-xs font-bold tracking-[0.15em] uppercase font-[var(--font-inter)] transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(105,114,253,0.3)] hover:shadow-[0_0_30px_rgba(105,114,253,0.6)]">
             {ctaLabel ?? "REGISTER NOW"}
           </a>

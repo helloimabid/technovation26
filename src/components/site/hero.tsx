@@ -45,7 +45,7 @@ export function Hero({
         </motion.p>
 
         <div className="flex flex-col items-start md:items-center w-full mb-8 md:mb-12">
-          <h1 className="max-w-full break-words font-[var(--font-anton)] text-[clamp(4rem,18vw,11rem)] leading-[0.85] uppercase tracking-normal text-white animate-hero-rise drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <h1 className="max-w-none whitespace-nowrap font-[var(--font-anton)] text-[clamp(3rem,18vw,11rem)] leading-[0.85] uppercase tracking-normal text-white animate-hero-rise drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
             {title}
           </h1>
         </div>

@@ -22,7 +22,7 @@ export function AboutSection({
           className="max-w-5xl mx-auto flex flex-col gap-8 md:gap-12 relative z-10"
         >
           <p className="font-[var(--font-inter)] text-3xl md:text-4xl lg:text-[2.5rem] leading-tight md:leading-snug text-white/90">
-            <span className="font-[var(--font-anton)] text-white uppercase tracking-wider text-4xl md:text-5xl lg:text-[3.5rem] drop-shadow-lg">
+            <span className="whitespace-nowrap font-[var(--font-anton)] text-white uppercase tracking-wider text-[clamp(2.5rem,7vw,3.5rem)] drop-shadow-lg">
               {highlightTitle ?? "TECNOVATION'26 DHAKA"}
             </span>{" "}
             {highlightBody ?? "will inspire you to think bigger about the way you code and design. Join us for never-before-seen tech showcases, intense competitions, sessions from industry leaders, and a community of innovators."}
