@@ -166,6 +166,21 @@ export default function DashboardPage() {
       }
 
       setProfile(profileLike);
+      const clubPartnerRes = await fetch("/api/club-partners/status");
+      let clubPartnerData = null;
+      if (clubPartnerRes.ok) {
+        clubPartnerData = await clubPartnerRes.json();
+      }
+      setClubPartner(clubPartnerData);
+
+      const submissionsOpenRes = await fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen");
+      let submissionsOpen = false;
+      if (submissionsOpenRes.ok) {
+        const blocks = await submissionsOpenRes.json();
+        const block = blocks.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
+        submissionsOpen = block ? block.value === "true" : false;
+      }
+      setClubSubmissionsOpen(submissionsOpen);
     } catch {
       toast.error("Please login to continue");
       window.location.href = "/login";
@@ -489,10 +504,10 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-center gap-3">
                     <span className="text-white/50 text-sm font-medium uppercase tracking-widest">Status:</span>
                     <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase ${clubPartner.status === "approved"
-                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                        : clubPartner.status === "rejected"
-                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                          : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : clubPartner.status === "rejected"
+                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                        : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
                       }`}>
                       {clubPartner.status}
                     </span>
