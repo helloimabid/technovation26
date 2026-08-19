@@ -55,144 +55,138 @@ export default function DashboardPage() {
   const [memberProfilesByUserId, setMemberProfilesByUserId] = useState<Record<string, TeamMemberProfile>>({});
 
   const load = async () => {
-    try {
-      setLoading(true);
-      const account = getAccount();
-      const me = await account.get();
+  try {
+    setLoading(true);
+    const account = getAccount();
+    const me = await account.get();
 
-      const clubStatusRes = await fetch("/api/club-partners/status");
-      if (clubStatusRes.ok) {
-        const clubData = await clubStatusRes.json();
-        setClubPartner(clubData);
-      }
+    // Fetch all in parallel
+    const [
+      profileRes,
+      segmentsRes,
+      regsRes,
+      packRes,
+      purchaseRes,
+      ambRes,
+      clubStatusRes,
+      submissionsOpenRes,
+    ] = await Promise.all([
+      fetch("/api/profile/me"),
+      fetch("/api/segments"),
+      fetch("/api/registrations"),
+      fetch("/api/packages"),
+      fetch("/api/purchases"),
+      fetch("/api/ambassadors/status"),
+      fetch("/api/club-partners/status"),
+      fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
+    ]);
 
-      // Fetch submissions open toggle from content blocks
-      const toggleRes = await fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen");
-      if (toggleRes.ok) {
-        const blocks = await toggleRes.json();
-        const block = blocks.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
-        setClubSubmissionsOpen(block ? block.value === "true" : false);
-      }
-      const [profileRes, segmentsRes, regsRes, packRes, purchaseRes, ambRes] = await Promise.all([
-        fetch("/api/profile/me"),
-        fetch("/api/segments"),
-        fetch("/api/registrations"),
-        fetch("/api/packages"),
-        fetch("/api/purchases"),
-        fetch("/api/ambassadors/status"),
-        fetch("/api/club-partners/status"),
-        fetch("/api/content-blocks?keys=clubPartnerSubmissionsOpen"),
-      ]);
+    // Parse responses
+    const [
+      serverProfile,
+      segmentsData,
+      regsData,
+      packsData,
+      purchasesData,
+      ambData,
+      clubPartnerData,
+      submissionsOpenData,
+    ] = await Promise.all([
+      profileRes.ok ? profileRes.json() : null,
+      segmentsRes.json(),
+      regsRes.json(),
+      packRes.json(),
+      purchaseRes.json(),
+      ambRes.ok ? ambRes.json() : null,
+      clubStatusRes.ok ? clubStatusRes.json() : null,
+      submissionsOpenRes.ok ? submissionsOpenRes.json() : [],
+    ]);
 
-      const [segmentsData, regsData, packsData, purchasesData, ambData, clubPartnerData, submissionsOpenData] = await Promise.all([
-        segmentsRes.json(),
-        regsRes.json(),
-        packRes.json(),
-        purchaseRes.json(),
-        ambRes.json(),
-        clubPartnerRes.json(),
-        submissionsOpenRes.json(),
-      ]);
+    setSegments(asArray<Segment>(segmentsData));
+    setRegistrations(asArray<Registration>(regsData));
+    setPackages(asArray<Package>(packsData));
+    setPurchases(asArray<Purchase>(purchasesData));
+    setAmbassador(ambData);
+    setClubPartner(clubPartnerData);
 
-      setSegments(asArray<Segment>(segmentsData));
-      setRegistrations(asArray<Registration>(regsData));
-      setPackages(asArray<Package>(packsData));
-      setPurchases(asArray<Purchase>(purchasesData));
-      setAmbassador(ambData);
-      setClubPartner(clubPartnerData);
-      setClubSubmissionsOpen(submissionsOpenData.value === "true");
-
-      const registrationDocs = asArray<Registration>(regsData);
-      const memberIds = Array.from(
-        new Set(
-          registrationDocs.flatMap((reg) => {
-            if (Array.isArray(reg.teamMemberUserIds)) return reg.teamMemberUserIds;
-            const parsed = parseFormData(reg.additionalFormData);
-            if (Array.isArray(parsed.teamMemberUserIds)) {
-              return parsed.teamMemberUserIds.map((value) => String(value));
-            }
-            return [];
-          })
-        )
-      );
-
-      if (memberIds.length > 0) {
-        const lookupRes = await fetch(`/api/profile/lookup?ids=${encodeURIComponent(memberIds.join(","))}`);
-        if (lookupRes.ok) {
-          const lookupData = asArray<TeamMemberProfile>(await lookupRes.json());
-          const nextMap = lookupData.reduce<Record<string, TeamMemberProfile>>((acc, profileDoc) => {
-            acc[profileDoc.userId] = profileDoc;
-            return acc;
-          }, {});
-          setMemberProfilesByUserId(nextMap);
-        }
-      } else {
-        setMemberProfilesByUserId({});
-      }
-
-      const profileLike: UserProfile = {
-        $id: me.$id,
-        userId: me.$id,
-        name: me.name,
-        email: me.email,
-        institution: "-",
-        phone: "-",
-        address: "-",
-        classLevel: "-",
-        fbLink: "",
-        role: "user",
-      };
-
-      if (profileRes.ok) {
-        const serverProfile = await profileRes.json();
-        if (serverProfile) {
-          profileLike.institution = serverProfile.institution ?? profileLike.institution;
-          profileLike.phone = serverProfile.phone ?? profileLike.phone;
-          profileLike.address = serverProfile.address ?? profileLike.address;
-          profileLike.classLevel = serverProfile.classLevel ?? profileLike.classLevel;
-          profileLike.fbLink = serverProfile.fbLink ?? profileLike.fbLink;
-          profileLike.role = serverProfile.role ?? profileLike.role;
-          profileLike.profilePicId = serverProfile.profilePicId ?? profileLike.profilePicId;
-
-          if (serverProfile.profilePicId) {
-            try {
-              const url = getStorage().getFilePreview(env.bucketId, serverProfile.profilePicId);
-              setProfilePicUrl(url.toString());
-            } catch (err) {
-              console.error("Failed to load profile pic", err);
-            }
-          }
-        }
-      }
-
-      setProfile(profileLike);
-      const clubPartnerRes = await fetch("/api/club-partners/status");
-      let clubPartnerData = null;
-      if (clubPartnerRes.ok) {
-        clubPartnerData = await clubPartnerRes.json();
-      }
-      setClubPartner(clubPartnerData);
-
-      const submissionsOpenRes = await fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen");
-      let submissionsOpen = false;
-      if (submissionsOpenRes.ok) {
-        const blocks = await submissionsOpenRes.json();
-        const block = blocks.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
-        submissionsOpen = block ? block.value === "true" : false;
-      }
-      setClubSubmissionsOpen(submissionsOpen);
-    } catch {
-      toast.error("Please login to continue");
-      window.location.href = "/login";
-    } finally {
-      setLoading(false);
+    // Determine submissions open
+    let submissionsOpen = false;
+    if (Array.isArray(submissionsOpenData)) {
+      const block = submissionsOpenData.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
+      submissionsOpen = block ? block.value === "true" : false;
     }
-  };
+    setClubSubmissionsOpen(submissionsOpen);
 
-  useEffect(() => {
-    load();
-  }, []);
+    // ---- Profile and member lookup (unchanged from your existing code) ----
+    const registrationDocs = asArray<Registration>(regsData);
+    const memberIds = Array.from(
+      new Set(
+        registrationDocs.flatMap((reg) => {
+          if (Array.isArray(reg.teamMemberUserIds)) return reg.teamMemberUserIds;
+          const parsed = parseFormData(reg.additionalFormData);
+          if (Array.isArray(parsed.teamMemberUserIds)) {
+            return parsed.teamMemberUserIds.map((value) => String(value));
+          }
+          return [];
+        })
+      )
+    );
 
+    if (memberIds.length > 0) {
+      const lookupRes = await fetch(`/api/profile/lookup?ids=${encodeURIComponent(memberIds.join(","))}`);
+      if (lookupRes.ok) {
+        const lookupData = asArray<TeamMemberProfile>(await lookupRes.json());
+        const nextMap = lookupData.reduce<Record<string, TeamMemberProfile>>((acc, profileDoc) => {
+          acc[profileDoc.userId] = profileDoc;
+          return acc;
+        }, {});
+        setMemberProfilesByUserId(nextMap);
+      }
+    } else {
+      setMemberProfilesByUserId({});
+    }
+
+    // Build profile object
+    const profileLike: UserProfile = {
+      $id: me.$id,
+      userId: me.$id,
+      name: me.name,
+      email: me.email,
+      institution: "-",
+      phone: "-",
+      address: "-",
+      classLevel: "-",
+      fbLink: "",
+      role: "user",
+    };
+
+    if (serverProfile) {
+      profileLike.institution = serverProfile.institution ?? profileLike.institution;
+      profileLike.phone = serverProfile.phone ?? profileLike.phone;
+      profileLike.address = serverProfile.address ?? profileLike.address;
+      profileLike.classLevel = serverProfile.classLevel ?? profileLike.classLevel;
+      profileLike.fbLink = serverProfile.fbLink ?? profileLike.fbLink;
+      profileLike.role = serverProfile.role ?? profileLike.role;
+      profileLike.profilePicId = serverProfile.profilePicId ?? profileLike.profilePicId;
+
+      if (serverProfile.profilePicId) {
+        try {
+          const url = getStorage().getFilePreview(env.bucketId, serverProfile.profilePicId);
+          setProfilePicUrl(url.toString());
+        } catch (err) {
+          console.error("Failed to load profile pic", err);
+        }
+      }
+    }
+
+    setProfile(profileLike);
+  } catch (error) {
+    toast.error("Please login to continue");
+    window.location.href = "/login";
+  } finally {
+    setLoading(false);
+  }
+};
   const coveredSegmentIds = useMemo(() => {
     const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
     const covered = new Set<string>();
