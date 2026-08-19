@@ -32,7 +32,8 @@ export async function submitContactForm(
   const result = contactSchema.safeParse(rawData);
   if (!result.success) {
     const fieldErrors: Record<string, string> = {};
-    result.error.errors.forEach((err) => {
+    // Use 'issues' (not 'errors') – Zod v3+
+    result.error.issues.forEach((err) => {
       if (err.path[0]) {
         fieldErrors[err.path[0].toString()] = err.message;
       }
