@@ -9,7 +9,6 @@ import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
 
-type SegmentField = { label: string; name: string; type: "text" | "url" | "textarea" };
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
   userId: string;
@@ -171,62 +170,6 @@ export default function DashboardPage() {
   }, [packages, purchases]);
 
   const registeredSegmentIds = useMemo(() => new Set(registrations.map((r) => r.segmentId)), [registrations]);
-
-  const registerSegment = async (segment: Segment) => {
-    try {
-      let payload = {};
-      try {
-        const schema = JSON.parse(segment.formSchema) as SegmentField[];
-        payload = schema.reduce<Record<string, string>>((acc, item) => {
-          const value = window.prompt(`${item.label}${item.type === "url" ? " (URL)" : ""}`) ?? "";
-          acc[item.name] = value;
-          return acc;
-        }, {});
-      } catch {
-        payload = {};
-      }
-
-      const teamName = segment.isTeamEvent ? (window.prompt("Team name") ?? "") : "";
-      const teamMembersInput = segment.isTeamEvent
-        ? (window.prompt("Team member user IDs (comma separated)") ?? "")
-        : "";
-      const teamMemberUserIds = teamMembersInput
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
-
-      const teamMemberLimit = Number(segment.teamMemberLimit ?? 0);
-      if (segment.isTeamEvent && teamMemberLimit > 0 && teamMemberUserIds.length > teamMemberLimit) {
-        throw new Error(`Maximum ${teamMemberLimit} team members are allowed for this segment`);
-      }
-
-      let paymentTransactionId = "";
-      if (segment.isPaid && !coveredSegmentIds.has(segment.$id)) {
-        const paymentPrompt = `This is a paid segment.${segment.bkashNumber ? ` Send fee to bKash: ${segment.bkashNumber}` : ""} Enter your bKash transaction ID:`;
-        paymentTransactionId = (window.prompt(paymentPrompt) ?? "").trim();
-      }
-
-      const res = await fetch("/api/registrations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          segmentId: segment.$id,
-          teamName,
-          teamMemberUserIds,
-          paymentTransactionId,
-          additionalFormData: JSON.stringify(payload),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed");
-
-      toast.success("Registered successfully");
-      load();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed");
-    }
-  };
 
   const unregister = async (id: string) => {
     const res = await fetch(`/api/registrations?id=${id}`, { method: "DELETE" });
@@ -573,13 +516,13 @@ export default function DashboardPage() {
                                 <p className="text-[11px] text-emerald-300/90 uppercase tracking-[0.14em]">Covered by purchased package</p>
                               ) : null}
                           </div>
-                          <button
-                            onClick={() => registerSegment(segment)}
-                            disabled={registeredSegmentIds.has(segment.$id)}
-                            className="w-full bg-white/5 hover:bg-[#6972fd] text-white/70 hover:text-white py-3 rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold disabled:opacity-30 disabled:hover:bg-white/5 transition-colors border border-white/10 mt-2"
+                          <Link
+                            href={`/events/${segment.$id}`}
+                            aria-disabled={registeredSegmentIds.has(segment.$id)}
+                            className={`block w-full rounded-xl border border-white/10 bg-white/5 py-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 transition-colors hover:bg-[#6972fd] hover:text-white ${registeredSegmentIds.has(segment.$id) ? "pointer-events-none opacity-30" : ""}`}
                           >
                             {registeredSegmentIds.has(segment.$id) ? "Registered" : "Register"}
-                          </button>
+                          </Link>
                         </article>
                       ))}
                   </div>

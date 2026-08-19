@@ -18,6 +18,7 @@ export function Navbar() {
   const [user, setUser] = useState<NavUser | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -98,30 +99,65 @@ export function Navbar() {
     router.refresh();
   };
 
+  const navigation = [
+    ["Home", "/"],
+    ["About", "/about"],
+    ["Events", "/events"],
+    ["Schedule", "/schedule"],
+    ["Gallery", "/gallery"],
+    ["Contact", "/contact"],
+  ] as const;
+
   return (
-    <nav className="absolute top-0 inset-x-0 z-50 flex items-center justify-between px-6 md:px-12 py-6 bg-transparent">
-      <Link href="/" className="flex items-center gap-3 relative z-10">
-        <Image
-          src="/logo.png"
-          alt="JITC Logo"
-          width={208}
-          height={64}
-          priority
-          className="h-16 md:h-16 w-auto object-contain"
-        />
-      </Link>
+    <nav className="absolute inset-x-0 top-0 z-50 px-3 py-3 sm:px-5 sm:py-4 md:px-8 lg:px-12 lg:py-6">
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3">
+        <Link href="/" onClick={() => setMenuOpen(false)} className="relative z-10 flex min-w-0 shrink-0 items-center">
+          <Image
+            src="/logo.png"
+            alt="JITC Logo"
+            width={208}
+            height={64}
+            priority
+            className="h-10 w-auto object-contain sm:h-12 md:h-14 lg:h-16"
+          />
+        </Link>
 
-      <div className="hidden md:flex items-center gap-8 text-white font-[var(--font-inter)] font-medium text-xs tracking-[0.15em] uppercase bg-white/15 px-8 py-3 rounded-full backdrop-blur-md border border-white/10">
-        <Link href="/" className="hover:text-white/70 transition-colors">Home</Link>
-        <Link href="/about" className="hover:text-white/70 transition-colors">About</Link>
-        <Link href="/events" className="hover:text-white/70 transition-colors">Events</Link>
-        <Link href="/schedule" className="hover:text-white/70 transition-colors">Schedule</Link>
-        <Link href="/gallery" className="hover:text-white/70 transition-colors">Gallery</Link>
-        <Link href="/contact" className="hover:text-white/70 transition-colors">Contact</Link>
-      </div>
+        <div className="hidden items-center gap-4 rounded-full border border-white/10 bg-white/15 px-5 py-2.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white backdrop-blur-md md:flex lg:gap-7 lg:px-8 lg:py-3 lg:text-xs lg:tracking-[0.15em]">
+          {navigation.map(([label, href]) => (
+            <Link key={href} href={href} className="whitespace-nowrap transition-colors hover:text-white/70">{label}</Link>
+          ))}
+        </div>
 
-      {user ? (
-        <div ref={menuRef} className="relative z-20">
+        <div ref={menuRef} className="relative z-20 flex shrink-0 items-center gap-2">
+          {navOpen ? (
+            <div className="absolute right-0 top-12 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-white/15 bg-[#1a1a38]/95 p-2 text-white shadow-2xl backdrop-blur-xl md:hidden">
+              <div className="flex flex-col gap-1">
+                {navigation.map(([label, href]) => (
+                  <Link key={href} href={href} onClick={() => setNavOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.14em] transition-colors hover:bg-white/10">
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setNavOpen((prev) => !prev)}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md md:hidden"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+          >
+            <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
+            <span className="flex flex-col gap-1.5" aria-hidden="true">
+              <span className="h-0.5 w-4 bg-current" />
+              <span className="h-0.5 w-4 bg-current" />
+              <span className="h-0.5 w-4 bg-current" />
+            </span>
+          </button>
+
+          {user ? (
+        <div className="relative">
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
             className="w-12 h-12 rounded-full border border-white/30 bg-white/10 text-white font-semibold text-sm flex items-center justify-center overflow-hidden backdrop-blur-md"
@@ -162,11 +198,14 @@ export function Navbar() {
       ) : (
         <Link
           href="/login"
-          className="bg-white text-[#06061b] px-4 py-2 text-xs uppercase tracking-[0.12em] font-[var(--font-inter)] font-semibold"
+          onClick={() => setNavOpen(false)}
+          className="bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#06061b] sm:px-4 sm:text-xs"
         >
           Login
         </Link>
       )}
+        </div>
+      </div>
     </nav>
   );
 }
