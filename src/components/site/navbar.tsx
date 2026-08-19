@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getStorage } from "@/lib/appwrite/client";
+import { getAccount, getStorage } from "@/lib/appwrite/client";
 import { env } from "@/lib/env";
 
 type NavUser = {
@@ -29,7 +29,7 @@ export function Navbar() {
     const loadUser = async () => {
       try {
         // 1️⃣ Get user from our server session
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/auth/me", { credentials: "include" });
         if (res.ok) {
           const session = await res.json();
           if (!mounted) return;
@@ -41,7 +41,7 @@ export function Navbar() {
           });
 
           // 2️⃣ Fetch profile picture if available
-          const profileRes = await fetch("/api/profile/me");
+          const profileRes = await fetch("/api/profile/me", { credentials: "include" });
           if (profileRes.ok) {
             const profile = await profileRes.json();
             if (profile?.profilePicId) {
@@ -94,12 +94,24 @@ export function Navbar() {
   }, [user]);
 
   const handleSignOut = async () => {
+    try {
+    await getAccount().deleteSession("current");
+  } catch {
+    // No Appwrite session — fine
+  }
+
+  // 2️⃣ Clear your custom session cookie
+  try {
     await fetch("/api/auth/clear-session", { method: "POST" });
-    setMenuOpen(false);
-    setUser(null);
-    setProfilePicUrl(null);
-    router.push("/login");
-    router.refresh();
+  } catch {
+    // ignore
+  }
+
+  // 3️⃣ Hard navigation — wipes all client state and router cache
+  setMenuOpen(false);
+  setUser(null);
+  setProfilePicUrl(null);
+  window.location.href = "/login";
   };
 
   const navigation = [

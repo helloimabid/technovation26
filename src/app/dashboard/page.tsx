@@ -10,7 +10,7 @@ import { env } from "@/lib/env";
 import { PackagesSection } from "@/components/site/packages-section";
 // ✅ ONLY keep getStorage – no getAccount/getClient
 import { getStorage } from "@/lib/appwrite/client";
-
+import { logout } from "@/lib/logout";
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
   userId: string;
@@ -58,43 +58,38 @@ export default function DashboardPage() {
   // ✅ CORRECTED load function – no direct Appwrite calls
   const load = async () => {
     try {
-      setLoading(true);
+    setLoading(true);
 
-      // 1️⃣ Get current user from our server session
-      const authRes = await fetch("/api/auth/me");
-      if (authRes.status === 401) {
-        // Not logged in – redirect to login
-        window.location.href = "/login";
-        return;
-      }
-      const session = await authRes.json();
+    const authRes = await fetch("/api/auth/me", { credentials: "include" });
+    if (authRes.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+    const session = await authRes.json();
 
-      // 2️⃣ Fetch profile data
-      const profileRes = await fetch("/api/profile/me");
-      let serverProfile = null;
-      if (profileRes.ok) {
-        serverProfile = await profileRes.json();
-      }
+    const profileRes = await fetch("/api/profile/me", { credentials: "include" });
+    let serverProfile = null;
+    if (profileRes.ok) {
+      serverProfile = await profileRes.json();
+    }
 
-      // 3️⃣ Fetch all other data in parallel
-      const [
-        segmentsRes,
-        regsRes,
-        packRes,
-        purchaseRes,
-        ambRes,
-        clubStatusRes,
-        submissionsOpenRes,
-      ] = await Promise.all([
-        fetch("/api/segments"),
-        fetch("/api/registrations"),
-        fetch("/api/packages"),
-        fetch("/api/purchases"),
-        fetch("/api/ambassadors/status"),
-        fetch("/api/club-partners/status"),
-        fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
-      ]);
-
+    const [
+      segmentsRes,
+      regsRes,
+      packRes,
+      purchaseRes,
+      ambRes,
+      clubStatusRes,
+      submissionsOpenRes,
+    ] = await Promise.all([
+      fetch("/api/segments", { credentials: "include" }),
+      fetch("/api/registrations", { credentials: "include" }),
+      fetch("/api/packages", { credentials: "include" }),
+      fetch("/api/purchases", { credentials: "include" }),
+      fetch("/api/ambassadors/status", { credentials: "include" }),
+      fetch("/api/club-partners/status", { credentials: "include" }),
+      fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen", { credentials: "include" }),
+    ]);
       const [
         segmentsData,
         regsData,
@@ -185,7 +180,7 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Dashboard load error:", error);
       toast.error("Something went wrong. Please login again.");
-      window.location.href = "/login";
+      window.location.href = "/";
     } finally {
       setLoading(false);
     }
@@ -195,7 +190,7 @@ export default function DashboardPage() {
     load();
   }, []); 
 
-  
+
   const coveredSegmentIds = useMemo(() => {
     const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
     const covered = new Set<string>();
@@ -271,10 +266,7 @@ export default function DashboardPage() {
       toast.error(error instanceof Error ? error.message : "Failed to apply");
     }
   };
-const logout = async () => {
-  await fetch("/api/auth/clear-session", { method: "POST" });
-  window.location.href = "/login";
-};
+
 
 
   if (loading) {

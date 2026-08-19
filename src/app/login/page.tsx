@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { getAccount, getClient } from "@/lib/appwrite/client";
+import { getAccount, } from "@/lib/appwrite/client";
 import { loginSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { Navbar } from "@/components/site/navbar";
@@ -28,10 +28,11 @@ export default function LoginPage() {
     const checkAuth = async () => {
       try {
         // Try to restore JWT from localStorage
-        const client = getClient();
+        // const client = getClient();
         const storedJwt = localStorage.getItem("appwrite_jwt");
         if (storedJwt) {
-          client.setJWT(storedJwt);
+          // const client = getClient();
+          // client.setJWT(storedJwt);
         }
         const account = getAccount();
         await account.get();
