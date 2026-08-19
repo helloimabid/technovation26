@@ -21,7 +21,7 @@ const robotoMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: "Tecnovation'26 | Josephite IT Club",
-  description: "Full-stack event management web app for Tecnovation'26",
+  description: "Event management web app for Tecnovation'26",
 };
 
 export default function RootLayout({
