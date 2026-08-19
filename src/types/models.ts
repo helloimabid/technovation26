@@ -56,6 +56,17 @@ export interface Ambassador {
   status: AmbassadorStatus;
 }
 
+export interface ClubPartner {
+   $id: string;
+ userId: string;
+  clubCode: string;
+   points: number;
+   referralsCount: number;
+   status: "pending" | "approved" | "rejected";
+   createdAt: string;
+   updatedAt: string;
+ }
+
 export interface Package {
   $id: string;
   name: string;

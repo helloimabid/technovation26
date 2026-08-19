@@ -14,5 +14,6 @@ export const env = {
     purchases: process.env.APPWRITE_COL_PURCHASES || "purchases",
     contentBlocks: process.env.APPWRITE_COL_CONTENT_BLOCKS || "content_blocks",
     contactMessages: process.env.APPWRITE_COL_CONTACT_MESSAGES || "contact_messages",
+    clubPartners: process.env.APPWRITE_COL_CLUB_PARTNERS || "club_partners",
   },
 };
