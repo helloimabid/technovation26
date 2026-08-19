@@ -21,8 +21,7 @@ export async function createContactMessage(data: ContactMessageInput) {
       email: data.email.trim(),
       subject: data.subject?.trim() || null,
       message: data.message.trim(),
-      status: "new", // default status
-      createdAt: new Date().toISOString(), // optional, Appwrite also provides $createdAt
+      status: "new", // default status – must exist as an enum attribute
     }
   );
   return doc;
