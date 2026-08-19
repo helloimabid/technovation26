@@ -22,6 +22,15 @@ body {
   font-family: var(--font-inter), sans-serif;
 }
 
+/* Content blocks are editable at runtime, so never let long values escape their container. */
+h1,
+h2,
+h3,
+h4,
+p {
+  overflow-wrap: anywhere;
+}
+
 @keyframes hero-rise {
   0% {
     opacity: 0;

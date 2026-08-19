@@ -21,7 +21,7 @@ export function AboutSection({
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-5xl mx-auto flex flex-col gap-8 md:gap-12 relative z-10"
         >
-          <p className="font-[var(--font-inter)] text-3xl md:text-4xl lg:text-[2.5rem] leading-tight md:leading-snug text-white/90">
+          <p className="break-words font-[var(--font-inter)] text-[clamp(1.5rem,3.5vw,2.5rem)] leading-tight md:leading-snug text-white/90">
             <span className="font-[var(--font-anton)] text-white uppercase tracking-wider text-4xl md:text-5xl lg:text-[3.5rem] drop-shadow-lg">
               {highlightTitle ?? "TECNOVATION'26 DHAKA"}
             </span>{" "}
@@ -48,7 +48,7 @@ export function AboutSection({
           >
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#06061b] to-[#12132b]">
              
-              <p className="font-[var(--font-anton)] text-4xl md:text-6xl text-white/10 tracking-widest uppercase absolute bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none">
+              <p className="w-[90%] break-words text-center font-[var(--font-anton)] text-[clamp(1.5rem,6vw,3.75rem)] leading-tight text-white/10 tracking-widest uppercase absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none">
                 {teaserCaption ?? "Teaser Coming Soon"}
               </p>
             </div>

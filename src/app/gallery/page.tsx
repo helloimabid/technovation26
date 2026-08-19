@@ -9,7 +9,7 @@ export default async function GalleryPage() {
     <>
       <Navbar />
       <div className="min-h-screen pt-32 pb-20 px-6 md:px-12 flex flex-col items-center justify-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wide text-center uppercase font-[var(--font-anton)]">
+        <h1 className="max-w-full break-words text-[clamp(2.25rem,6vw,3rem)] leading-tight font-bold text-white mb-6 tracking-wide text-center uppercase font-[var(--font-anton)]">
           {content.galleryPageTitle}
         </h1>
         <p className="text-white/70 max-w-2xl text-center">

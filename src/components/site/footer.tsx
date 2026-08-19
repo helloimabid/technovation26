@@ -13,8 +13,8 @@ export function Footer({
 }) {
   return (
     <footer className="bg-[#06061b] py-24 md:py-32 px-6 md:px-12 flex flex-col items-center justify-between border-t border-white/10 relative overflow-hidden z-10">
-      <div className="w-full flex flex-col items-center justify-center opacity-40 select-none pointer-events-none relative h-[15vw] mb-8 mt-4">
-        <h1 className="font-[var(--font-anton)] text-[12vw] leading-[0.8] tracking-tight text-white uppercase text-center whitespace-nowrap absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="w-full flex min-h-24 flex-col items-center justify-center opacity-40 select-none pointer-events-none relative mb-8 mt-4 px-4">
+        <h1 className="w-full break-words font-[var(--font-anton)] text-[clamp(2.5rem,12vw,9rem)] leading-[0.9] tracking-tight text-white uppercase text-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {brandText ?? "TECNOVATION'26"}
         </h1>
       </div>
