@@ -8,6 +8,7 @@ import { Ambassador, Package, Purchase, Registration, Segment, UserProfile } fro
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
+import { PackagesSection } from "@/components/site/packages-section";
 
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
@@ -156,7 +157,7 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  const coveredSegmentIds = useMemo(() => {
+   const coveredSegmentIds = useMemo(() => {
     const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
     const covered = new Set<string>();
 
@@ -169,7 +170,10 @@ export default function DashboardPage() {
     return covered;
   }, [packages, purchases]);
 
-  const registeredSegmentIds = useMemo(() => new Set(registrations.map((r) => r.segmentId)), [registrations]);
+  const registeredSegmentIds = useMemo(
+    () => new Set(registrations.map((r) => r.segmentId)),
+    [registrations]
+  );
 
   const unregister = async (id: string) => {
     const res = await fetch(`/api/registrations?id=${id}`, { method: "DELETE" });
@@ -182,6 +186,7 @@ export default function DashboardPage() {
     toast.success("Unregistered");
     load();
   };
+
 
   const purchase = async (packageId: string) => {
     const res = await fetch("/api/purchases", {
@@ -451,55 +456,12 @@ export default function DashboardPage() {
 
         {/* BOTTOM SECTIONS: PACKAGES & SEGMENTS */}
         <div className="pt-10 mb-12 space-y-10">
-            {packages.length > 0 && (
-                <section className="bg-[#120E1C]/60 border border-white/[0.05] shadow-[0_8px_30px_rgba(0,0,0,0.3)] rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm">
-                  <div className="flex flex-col items-center gap-3 mb-8">
-                      <h2 className="text-xl sm:text-2xl font-[var(--font-inter)] font-semibold text-white/90 tracking-wide">Available Packages</h2>
-                      <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-transparent via-[#6972fd] to-transparent rounded-full opacity-70"></div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {packages.map((pack) => {
-                        const already = purchases.some((p) => p.packageId === pack.$id);
-                        const includedSegmentIds = Array.isArray(pack.includedSegmentIds) ? pack.includedSegmentIds : [];
-                        const includedSegments = segments.filter((segment) => includedSegmentIds.includes(segment.$id));
-                        const combinedCost = includedSegments.reduce((total, segment) => total + Number(segment.fee ?? 0), 0);
-                        const savings = combinedCost > pack.price ? combinedCost - pack.price : 0;
-                        return (
-                          <article key={pack.$id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col gap-4 hover:bg-white/[0.04] transition-all duration-300 hover:border-white/10">
-                            <div className="flex-1 space-y-2">
-                                <h3 className="font-bold text-lg text-white/90">{pack.name}</h3>
-                                <p className="text-[#6972fd] font-[var(--font-anton)] text-2xl tracking-wide">{pack.price} BDT</p>
-                                {includedSegments.length > 0 ? (
-                                  <div className="pt-1">
-                                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/45 font-bold mb-2">Includes Segments</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {includedSegments.map((segment) => (
-                                        <span key={`${pack.$id}-${segment.$id}`} className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/70">
-                                          {segment.name}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : null}
-                                {savings > 0 ? (
-                                  <p className="text-xs text-emerald-300/90">Bundle savings: {savings} BDT compared to segment total</p>
-                                ) : null}
-                                <p className="text-xs text-white/40 leading-relaxed pt-2">{pack.benefits}</p>
-                            </div>
-                            <button
-                              onClick={() => purchase(pack.$id)}
-                              disabled={already}
-                              className="w-full bg-white/5 hover:bg-[#6972fd] text-white/70 hover:text-white py-3 rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold disabled:opacity-30 disabled:hover:bg-white/5 transition-colors border border-white/10 mt-2"
-                            >
-                              {already ? "Purchased" : "Purchase Package"}
-                            </button>
-                          </article>
-                        );
-                      })}
-                  </div>
-                </section>
-            )}
-
+               {/* PACKAGES — using shared component with proper bKash checkout */}
+        <PackagesSection
+          packages={packages}
+          segments={segments}
+          onPurchaseSuccess={(purchase) => setPurchases((prev) => [...prev, purchase])}
+        />
             {segments.length > 0 && (
                 <section className="bg-[#120E1C]/60 border border-white/[0.05] shadow-[0_8px_30px_rgba(0,0,0,0.3)] rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm">
                   <div className="flex flex-col items-center gap-3 mb-8">
