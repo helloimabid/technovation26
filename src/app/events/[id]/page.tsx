@@ -23,7 +23,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
   const hasImage = isValidImageUrl(segment.image);
 
   return (
-    <div className="min-h-screen bg-[#06061b] text-white flex flex-col relative overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[#06061b] text-white flex flex-col relative">
       {/* Full-page segment image background */}
       {hasImage ? (
         <img
@@ -38,7 +38,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
       <Navbar />
 
       {/* Hero Banner */}
-      <section className="relative w-full pt-28 mt-24 md:pt-36">
+      <section className="relative w-full pt-24 mt-20 sm:pt-28 sm:mt-24 md:pt-36">
         {/* <div className="relative w-full h-[260px] md:h-[380px] overflow-hidden">
           {hasImage ? (
             <img
@@ -59,7 +59,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
         </div> */}
 
         {/* Title overlay */}
-        <div className="relative z-10 max-w-5xl mx-auto px-6  md:px-12 -mt-20 md:-mt-28">
+        <div className="relative z-10 max-w-5xl mx-auto px-3 sm:px-6 md:px-12 -mt-16 sm:-mt-20 md:-mt-28">
           <Link
             href="/events"
             className="inline-flex items-center gap-2 text-white/50 hover:text-white text-xs uppercase tracking-[0.2em] font-[var(--font-inter)] font-semibold mb-4 transition-colors"
@@ -82,7 +82,7 @@ export default async function SegmentDetailPage({ params }: { params: Promise<{ 
       </section>
 
       {/* Content */}
-      <main className="flex-1 relative z-10 max-w-5xl w-full mx-auto mb-24 px-6 md:px-12 py-12 md:py-16 space-y-12">
+      <main className="flex-1 relative z-10 max-w-5xl w-full mx-auto mb-14 sm:mb-24 px-3 sm:px-6 md:px-12 py-8 sm:py-12 md:py-16 space-y-8 sm:space-y-12">
         <div className="grid lg:grid-cols-[1fr_340px] gap-10 lg:gap-14 items-start">
           {/* Left column — description & rules */}
           <div className="space-y-10">

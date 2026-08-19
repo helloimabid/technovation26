@@ -142,9 +142,9 @@ export default function SignupPage() {
       <div className="absolute top-[-20%] left-[-8%] w-[55%] h-[55%] bg-[#6972fd] opacity-10 blur-[150px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[45%] bg-[#25203A] opacity-40 blur-[130px] rounded-full pointer-events-none"></div>
       <div className="relative z-10 flex-1 w-full px-6 py-10 mt-16 md:mt-24 md:px-12">
-      <div className="mx-auto w-full max-w-6xl rounded-[2rem] border border-white/10 bg-black/20 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+      <div className="mx-auto w-full max-w-6xl rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black/20 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
         <div className="grid xl:grid-cols-[1.2fr_1fr]">
-          <section className="p-7 sm:p-10 md:p-12 bg-[#0d0a17]/90">
+          <section className="p-4 sm:p-7 md:p-12 bg-[#0d0a17]/90">
             <div className="mb-8">
               <p className="font-[var(--font-roboto-mono)] text-[11px] tracking-[0.28em] uppercase text-white/50">Account Creation</p>
               <h1 className="font-[var(--font-anton)] text-5xl tracking-[0.04em] mt-2">Register</h1>

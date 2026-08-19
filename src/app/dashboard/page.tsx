@@ -228,7 +228,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0B16] text-white flex flex-col font-[var(--font-inter)] selection:bg-[#6972fd] selection:text-white pb-12 relative overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[#0E0B16] text-white flex flex-col font-[var(--font-inter)] selection:bg-[#6972fd] selection:text-white pb-12 relative">
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[50%] bg-[#6972fd] opacity-5 blur-[150px] rounded-full pointer-events-none transition-transform duration-1000 ease-in-out"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#25203A] opacity-30 blur-[130px] rounded-full pointer-events-none transition-transform duration-1000 ease-in-out"></div>
@@ -239,7 +239,7 @@ export default function DashboardPage() {
       <div className="flex-1 w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-6 md:py-10 space-y-12 relative z-10 mt-16 md:mt-24">
           
         {/* HERO PROFILE CARD */}
-        <div className="relative rounded-[2rem] overflow-hidden p-8 sm:p-10 md:p-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 shadow-2xl border border-white/10 group transition-all duration-500 hover:border-[#6972fd]/40 bg-[#161224]/80 backdrop-blur-sm" style={{ background: "linear-gradient(145deg, rgba(28,23,43,0.9) 0%, rgba(13,10,20,0.9) 100%)" }}>
+        <div className="relative rounded-[2rem] overflow-hidden p-5 sm:p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-8 shadow-2xl border border-white/10 group transition-all duration-500 hover:border-[#6972fd]/40 bg-[#161224]/80 backdrop-blur-sm" style={{ background: "linear-gradient(145deg, rgba(28,23,43,0.9) 0%, rgba(13,10,20,0.9) 100%)" }}>
             
             <div className="absolute top-0 right-0 w-[120%] md:w-[60%] h-full pointer-events-none opacity-[0.03] transform translate-x-1/4 scale-150 z-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                   {registrations.length === 0 ? (
                       <p className="text-white/40 font-medium tracking-wide">You haven&apos;t participated in any event yet.</p>
                   ) : (
-                      <div className="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-5 text-left relative z-10">
+                      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 text-left relative z-10">
                         {registrations.map((reg) => {
                           const seg = segments.find((s) => s.$id === reg.segmentId);
                           const data = parseFormData(reg.additionalFormData);
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                           const isTeamLead = reg.userId === profile?.userId;
 
                           return (
-                              <div key={reg.$id} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:bg-white/[0.05] hover:border-white/10 shadow-lg hover:shadow-xl group">
+                              <div key={reg.$id} className="min-w-0 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 hover:bg-white/[0.05] hover:border-white/10 shadow-lg hover:shadow-xl group">
                                   <div className="mb-4 space-y-2">
                                       <div className="flex items-center justify-between gap-2">
                                           <p className="font-bold text-lg text-white/90 font-[var(--font-anton)] tracking-wide">{seg?.name ?? reg.segmentId}</p>

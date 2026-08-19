@@ -152,10 +152,10 @@ export default function SettingsPage() {
 
       <Navbar />
 
-      <section className="relative z-10 pt-28 pb-14 px-6 md:px-10">
-        <div className="mx-auto w-full max-w-5xl rounded-[2rem] border border-white/10 bg-black/25 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+      <section className="relative z-10 pt-24 pb-10 px-3 sm:px-6 md:px-10">
+        <div className="mx-auto w-full max-w-5xl rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black/25 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
           <div className="grid lg:grid-cols-[280px_1fr]">
-            <aside className="border-b lg:border-b-0 lg:border-r border-white/10 p-8 bg-[#0d0a17]/80 flex flex-col items-center text-center">
+            <aside className="border-b lg:border-b-0 lg:border-r border-white/10 p-5 sm:p-8 bg-[#0d0a17]/80 flex flex-col items-center text-center">
               <div className="w-28 h-28 rounded-full border border-white/20 overflow-hidden bg-white/10 flex items-center justify-center text-2xl font-semibold">
                 {profilePicUrl ? (
                   <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -179,7 +179,7 @@ export default function SettingsPage() {
               </button>
             </aside>
 
-            <div className="p-8 md:p-10">
+            <div className="p-5 sm:p-8 md:p-10">
               <div className="mb-8">
                 <p className="font-[var(--font-roboto-mono)] text-[11px] tracking-[0.28em] uppercase text-white/50">User Settings</p>
                 <h1 className="font-[var(--font-anton)] text-5xl tracking-[0.04em] mt-2">Edit Profile</h1>
