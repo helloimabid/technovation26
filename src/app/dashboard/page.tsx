@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getAccount, getStorage } from "@/lib/appwrite/client";
-import { Ambassador, Package, Purchase, Registration, Segment, UserProfile } from "@/types/models";
+import { Ambassador, ClubPartner, Package, Purchase, Registration, Segment, UserProfile } from "@/types/models";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
@@ -50,6 +50,8 @@ export default function DashboardPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [ambassador, setAmbassador] = useState<Ambassador | null>(null);
+  const [clubPartner, setClubPartner] = useState<ClubPartner | null>(null);
+  const [clubSubmissionsOpen, setClubSubmissionsOpen] = useState<boolean | null>(null);
   const [memberProfilesByUserId, setMemberProfilesByUserId] = useState<Record<string, TeamMemberProfile>>({});
 
   const load = async () => {
@@ -58,6 +60,19 @@ export default function DashboardPage() {
       const account = getAccount();
       const me = await account.get();
 
+      const clubStatusRes = await fetch("/api/club-partners/status");
+      if (clubStatusRes.ok) {
+        const clubData = await clubStatusRes.json();
+        setClubPartner(clubData);
+      }
+
+      // Fetch submissions open toggle from content blocks
+      const toggleRes = await fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen");
+      if (toggleRes.ok) {
+        const blocks = await toggleRes.json();
+        const block = blocks.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
+        setClubSubmissionsOpen(block ? block.value === "true" : false);
+      }
       const [profileRes, segmentsRes, regsRes, packRes, purchaseRes, ambRes] = await Promise.all([
         fetch("/api/profile/me"),
         fetch("/api/segments"),
@@ -65,14 +80,18 @@ export default function DashboardPage() {
         fetch("/api/packages"),
         fetch("/api/purchases"),
         fetch("/api/ambassadors/status"),
+        fetch("/api/club-partners/status"),
+        fetch("/api/content-blocks?keys=clubPartnerSubmissionsOpen"),
       ]);
 
-      const [segmentsData, regsData, packsData, purchasesData, ambData] = await Promise.all([
+      const [segmentsData, regsData, packsData, purchasesData, ambData, clubPartnerData, submissionsOpenData] = await Promise.all([
         segmentsRes.json(),
         regsRes.json(),
         packRes.json(),
         purchaseRes.json(),
         ambRes.json(),
+        clubPartnerRes.json(),
+        submissionsOpenRes.json(),
       ]);
 
       setSegments(asArray<Segment>(segmentsData));
@@ -80,6 +99,8 @@ export default function DashboardPage() {
       setPackages(asArray<Package>(packsData));
       setPurchases(asArray<Purchase>(purchasesData));
       setAmbassador(ambData);
+      setClubPartner(clubPartnerData);
+      setClubSubmissionsOpen(submissionsOpenData.value === "true");
 
       const registrationDocs = asArray<Registration>(regsData);
       const memberIds = Array.from(
@@ -215,6 +236,22 @@ export default function DashboardPage() {
 
     toast.success("CA application submitted");
     load();
+  };
+  const applyClubPartner = async () => {
+    try {
+      const res = await fetch("/api/club-partners/apply", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to apply");
+      toast.success("Club Partner application submitted");
+      // Reload status
+      const statusRes = await fetch("/api/club-partners/status");
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        setClubPartner(statusData);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to apply");
+    }
   };
 
   const logout = async () => {
@@ -445,54 +482,53 @@ export default function DashboardPage() {
               <h2 className="text-lg font-[var(--font-inter)] font-semibold text-white/90 tracking-wide inline-block border-b border-white/10 pb-3 mb-2 px-6">Club Partner Status</h2>
             </div>
             <div className="flex-1 flex flex-col items-center justify-center">
-              {(() => {
-                // We need to fetch club partner status and submissions open state
-                // We'll use a separate state for clubPartner and submissionsOpen
-                // We'll add these to the component state and load them in the useEffect
-                // For brevity, we'll assume we have clubPartner and clubSubmissionsOpen in state.
-                // You'll need to add these states and load them.
-                // This is a snippet showing the conditional rendering.
-                if (loading) return <p className="text-white/40">Loading...</p>;
-                if (!clubSubmissionsOpen && !clubPartner) {
-                  return <p className="text-white/40 text-sm">Submissions are currently closed.</p>;
-                }
-                if (clubPartner) {
-                  const statusColors = {
-                    pending: "bg-yellow-500/20 text-yellow-400",
-                    approved: "bg-green-500/20 text-green-400",
-                    rejected: "bg-red-500/20 text-red-400",
-                  };
-                  return (
-                    <div className="space-y-4 w-full">
-                      <div className="flex items-center justify-center gap-3">
-                        <span className="text-white/50 text-sm font-medium uppercase tracking-widest">Status:</span>
-                        <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase ${statusColors[clubPartner.status] || "bg-white/10 text-white/60"}`}>
-                          {clubPartner.status}
-                        </span>
-                      </div>
-                      {clubPartner.status === "approved" && (
-                        <div className="bg-black/30 border border-white/5 py-2.5 px-4 rounded-xl inline-block mt-2">
-                          <span className="text-white/40 text-xs uppercase tracking-widest mr-2">Code:</span>
-                          <span className="text-white font-[var(--font-roboto-mono)] tracking-wider font-semibold">{clubPartner.clubCode}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                // Not applied yet and submissions are open
-                return (
-                  <div className="space-y-6 w-full flex flex-col items-center">
-                    <p className="text-white/40 font-medium text-sm">You have not applied for Club Partner yet.</p>
-                    <button
-                      onClick={applyClubPartner}
-                      disabled={!clubSubmissionsOpen}
-                      className="bg-white/5 hover:bg-[#6972fd] hover:text-white text-white/70 transition-all duration-300 border border-white/10 px-8 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-lg w-full max-w-[220px] disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      Apply for Club Partner
-                    </button>
+              {loading ? (
+                <p className="text-white/40">Loading...</p>
+              ) : clubPartner ? (
+                <div className="space-y-4 w-full">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-white/50 text-sm font-medium uppercase tracking-widest">Status:</span>
+                    <span className={`px-3 py-1 rounded-md text-xs font-bold tracking-widest uppercase ${clubPartner.status === "approved"
+                        ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                        : clubPartner.status === "rejected"
+                          ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                          : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                      }`}>
+                      {clubPartner.status}
+                    </span>
                   </div>
-                );
-              })()}
+                  {clubPartner.status === "approved" && (
+                    <div className="bg-black/30 border border-white/5 py-2.5 px-4 rounded-xl inline-block mt-2">
+                      <span className="text-white/40 text-xs uppercase tracking-widest mr-2">Code:</span>
+                      <span className="text-white font-[var(--font-roboto-mono)] tracking-wider font-semibold">{clubPartner.clubCode}</span>
+                    </div>
+                  )}
+                  {clubPartner.status === "approved" && (
+                    <div className="flex items-center justify-center gap-3 mt-4 w-full">
+                      <div className="bg-black/40 border border-white/[0.03] p-4 rounded-2xl flex-1 shadow-inner">
+                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-1">Points</p>
+                        <p className="text-3xl font-[var(--font-anton)] text-[#6972fd] drop-shadow-md">{clubPartner.points}</p>
+                      </div>
+                      <div className="bg-black/40 border border-white/[0.03] p-4 rounded-2xl flex-1 shadow-inner">
+                        <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mb-1">Referrals</p>
+                        <p className="text-3xl font-[var(--font-anton)] text-white drop-shadow-md">{clubPartner.referralsCount}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : clubSubmissionsOpen === false ? (
+                <p className="text-white/40 text-sm">Submissions are currently closed.</p>
+              ) : (
+                <div className="space-y-6 w-full flex flex-col items-center">
+                  <p className="text-white/40 font-medium text-sm">You have not applied for Club Partner yet.</p>
+                  <button
+                    onClick={applyClubPartner}
+                    className="bg-white/5 hover:bg-[#6972fd] hover:text-white text-white/70 transition-all duration-300 border border-white/10 px-8 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-lg w-full max-w-[220px] disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    Apply for Club Partner
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </section>
