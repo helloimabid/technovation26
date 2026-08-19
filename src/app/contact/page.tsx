@@ -11,7 +11,7 @@ export default async function ContactPage() {
       <Navbar />
       <div className="pt-24 bg-white text-[#333]">
         <div className="py-24 px-6 md:px-12 text-center border-b border-black/5 relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-[#06061b] uppercase font-[var(--font-anton)] tracking-wider">
+          <h1 className="max-w-full break-words text-[clamp(2.25rem,6vw,3rem)] leading-tight font-bold mb-6 text-[#06061b] uppercase font-[var(--font-anton)] tracking-wider">
             {content.contactPageTitle}
           </h1>
           <p className="text-black/70 text-lg leading-relaxed mb-8">

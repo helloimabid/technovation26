@@ -1,5 +1,6 @@
 "use client";
 
+import { AutoFitText } from "@/components/site/auto-fit-text";
 import { motion } from "framer-motion";
 
 type FaqItem = { question: string; answer: string };
@@ -23,7 +24,14 @@ export function FaqSection({
           transition={{ duration: 0.6 }}
           className="md:w-1/3"
         >
-          <h2 className="font-[var(--font-anton)] text-5xl md:text-6xl lg:text-7xl uppercase tracking-wider text-[#06061b] mb-6">{title ?? "Got questions?"}</h2>
+          <AutoFitText
+            as="h2"
+            maxSize={76}
+            minSize={28}
+            className="w-full font-[var(--font-anton)] leading-[0.95] uppercase tracking-wider text-[#06061b] mb-6"
+          >
+            {title ?? "Got questions?"}
+          </AutoFitText>
           <p className="font-[var(--font-inter)] text-lg md:text-xl text-[#06061b]/70 font-medium leading-relaxed max-w-sm">
             {description ?? "Find answers to common questions about the event, registration, and participation rules."}
           </p>
@@ -41,7 +49,7 @@ export function FaqSection({
               open={idx === 0}
             >
               <summary className="flex justify-between items-center py-8 cursor-pointer outline-none list-none relative">
-                <h4 className="font-[var(--font-inter)] text-xl md:text-2xl font-bold text-[#333] group-hover:text-[#6972fd] transition-colors pr-8">
+                <h4 className="min-w-0 break-words font-[var(--font-inter)] text-[clamp(1.125rem,2.5vw,1.5rem)] leading-snug font-bold text-[#333] group-hover:text-[#6972fd] transition-colors pr-8">
                   {item.question}
                 </h4>
                 <div className="w-8 h-8 rounded-full bg-[#333]/5 group-hover:bg-[#6972fd]/10 flex items-center justify-center shrink-0 transition-colors">
