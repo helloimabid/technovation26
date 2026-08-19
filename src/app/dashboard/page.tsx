@@ -58,17 +58,7 @@ const load = async () => {
   try {
     setLoading(true);
 
-    // 1️⃣ Restore JWT from localStorage if available
-    const client = getClient(); // imported from "@/lib/appwrite/client"
-    const storedJwt = localStorage.getItem("appwrite_jwt");
-    if (storedJwt) {
-      client.setJWT(storedJwt);
-    }
-
-    const account = getAccount();
-    const me = await account.get();
-
-    // 2️⃣ Fetch all data in parallel
+    // Fetch all data in parallel (no direct Appwrite client calls)
     const [
       profileRes,
       segmentsRes,
@@ -89,7 +79,14 @@ const load = async () => {
       fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
     ]);
 
-    // 3️⃣ Parse responses
+    // If profile is 401, redirect to login
+    if (profileRes.status === 401) {
+      localStorage.removeItem("appwrite_jwt"); // cleanup any leftover
+      window.location.href = "/login";
+      return;
+    }
+
+    // Parse responses
     const [
       serverProfile,
       segmentsData,
@@ -110,7 +107,6 @@ const load = async () => {
       submissionsOpenRes.ok ? submissionsOpenRes.json() : [],
     ]);
 
-    // 4️⃣ Set state
     setSegments(asArray<Segment>(segmentsData));
     setRegistrations(asArray<Registration>(regsData));
     setPackages(asArray<Package>(packsData));
@@ -118,7 +114,7 @@ const load = async () => {
     setAmbassador(ambData);
     setClubPartner(clubPartnerData);
 
-    // 5️⃣ Determine if club partner submissions are open
+    // Determine if club partner submissions are open
     let submissionsOpen = false;
     if (Array.isArray(submissionsOpenData)) {
       const block = submissionsOpenData.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
@@ -126,7 +122,39 @@ const load = async () => {
     }
     setClubSubmissionsOpen(submissionsOpen);
 
-    // 6️⃣ Build member lookup map from team registrations
+    // Build profile from server response
+    if (serverProfile) {
+      const profileLike: UserProfile = {
+        $id: serverProfile.userId || "",
+        userId: serverProfile.userId || "",
+        name: serverProfile.name || "",
+        email: serverProfile.email || "",
+        institution: serverProfile.institution || "-",
+        phone: serverProfile.phone || "-",
+        address: serverProfile.address || "-",
+        classLevel: serverProfile.classLevel || "-",
+        fbLink: serverProfile.fbLink || "",
+        role: serverProfile.role || "user",
+        profilePicId: serverProfile.profilePicId,
+      };
+
+      if (serverProfile.profilePicId) {
+        try {
+          const url = getStorage().getFilePreview(env.bucketId, serverProfile.profilePicId);
+          setProfilePicUrl(url.toString());
+        } catch (err) {
+          console.error("Failed to load profile pic", err);
+        }
+      }
+
+      setProfile(profileLike);
+    } else {
+      // Fallback: redirect to login if no profile
+      window.location.href = "/login";
+      return;
+    }
+
+    // --- Member lookup (unchanged) ---
     const registrationDocs = asArray<Registration>(regsData);
     const memberIds = Array.from(
       new Set(
@@ -154,45 +182,10 @@ const load = async () => {
     } else {
       setMemberProfilesByUserId({});
     }
-
-    // 7️⃣ Build user profile object
-    const profileLike: UserProfile = {
-      $id: me.$id,
-      userId: me.$id,
-      name: me.name,
-      email: me.email,
-      institution: "-",
-      phone: "-",
-      address: "-",
-      classLevel: "-",
-      fbLink: "",
-      role: "user",
-    };
-
-    if (serverProfile) {
-      profileLike.institution = serverProfile.institution ?? profileLike.institution;
-      profileLike.phone = serverProfile.phone ?? profileLike.phone;
-      profileLike.address = serverProfile.address ?? profileLike.address;
-      profileLike.classLevel = serverProfile.classLevel ?? profileLike.classLevel;
-      profileLike.fbLink = serverProfile.fbLink ?? profileLike.fbLink;
-      profileLike.role = serverProfile.role ?? profileLike.role;
-      profileLike.profilePicId = serverProfile.profilePicId ?? profileLike.profilePicId;
-
-      if (serverProfile.profilePicId) {
-        try {
-          const url = getStorage().getFilePreview(env.bucketId, serverProfile.profilePicId);
-          setProfilePicUrl(url.toString());
-        } catch (err) {
-          console.error("Failed to load profile pic", err);
-        }
-      }
-    }
-
-    setProfile(profileLike);
   } catch (error) {
-    // On any error (including 401), clear JWT and redirect to login
+    console.error("Dashboard load error:", error);
+    toast.error("Something went wrong. Please login again.");
     localStorage.removeItem("appwrite_jwt");
-    toast.error("Please login to continue");
     window.location.href = "/login";
   } finally {
     setLoading(false);

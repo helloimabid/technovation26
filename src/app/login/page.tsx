@@ -57,9 +57,7 @@ export default function LoginPage() {
       const account = getAccount();
       await account.createEmailPasswordSession(values.email, values.password);
 
-      // After successful login, create a JWT and store it
-      const jwt = await account.createJWT();
-      localStorage.setItem("appwrite_jwt", jwt.jwt);
+     
 
       const me = await account.get();
 
