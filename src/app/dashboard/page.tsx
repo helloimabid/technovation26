@@ -8,7 +8,8 @@ import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
 import { PackagesSection } from "@/components/site/packages-section";
-import { getClient, getAccount, getStorage } from "@/lib/appwrite/client";
+// ✅ ONLY keep getStorage – no getAccount/getClient
+import { getStorage } from "@/lib/appwrite/client";
 
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
@@ -54,91 +55,95 @@ export default function DashboardPage() {
   const [clubSubmissionsOpen, setClubSubmissionsOpen] = useState<boolean | null>(null);
   const [memberProfilesByUserId, setMemberProfilesByUserId] = useState<Record<string, TeamMemberProfile>>({});
 
-const load = async () => {
-  try {
-    setLoading(true);
+  // ✅ CORRECTED load function – no direct Appwrite calls
+  const load = async () => {
+    try {
+      setLoading(true);
 
-    // Fetch all data in parallel (no direct Appwrite client calls)
-    const [
-      profileRes,
-      segmentsRes,
-      regsRes,
-      packRes,
-      purchaseRes,
-      ambRes,
-      clubStatusRes,
-      submissionsOpenRes,
-    ] = await Promise.all([
-      fetch("/api/profile/me"),
-      fetch("/api/segments"),
-      fetch("/api/registrations"),
-      fetch("/api/packages"),
-      fetch("/api/purchases"),
-      fetch("/api/ambassadors/status"),
-      fetch("/api/club-partners/status"),
-      fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
-    ]);
+      // 1️⃣ Get current user from our server session
+      const authRes = await fetch("/api/auth/me");
+      if (authRes.status === 401) {
+        // Not logged in – redirect to login
+        window.location.href = "/login";
+        return;
+      }
+      const session = await authRes.json();
 
-    // If profile is 401, redirect to login
-    if (profileRes.status === 401) {
-      localStorage.removeItem("appwrite_jwt"); // cleanup any leftover
-      window.location.href = "/login";
-      return;
-    }
+      // 2️⃣ Fetch profile data
+      const profileRes = await fetch("/api/profile/me");
+      let serverProfile = null;
+      if (profileRes.ok) {
+        serverProfile = await profileRes.json();
+      }
 
-    // Parse responses
-    const [
-      serverProfile,
-      segmentsData,
-      regsData,
-      packsData,
-      purchasesData,
-      ambData,
-      clubPartnerData,
-      submissionsOpenData,
-    ] = await Promise.all([
-      profileRes.ok ? profileRes.json() : null,
-      segmentsRes.json(),
-      regsRes.json(),
-      packRes.json(),
-      purchaseRes.json(),
-      ambRes.ok ? ambRes.json() : null,
-      clubStatusRes.ok ? clubStatusRes.json() : null,
-      submissionsOpenRes.ok ? submissionsOpenRes.json() : [],
-    ]);
+      // 3️⃣ Fetch all other data in parallel
+      const [
+        segmentsRes,
+        regsRes,
+        packRes,
+        purchaseRes,
+        ambRes,
+        clubStatusRes,
+        submissionsOpenRes,
+      ] = await Promise.all([
+        fetch("/api/segments"),
+        fetch("/api/registrations"),
+        fetch("/api/packages"),
+        fetch("/api/purchases"),
+        fetch("/api/ambassadors/status"),
+        fetch("/api/club-partners/status"),
+        fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
+      ]);
 
-    setSegments(asArray<Segment>(segmentsData));
-    setRegistrations(asArray<Registration>(regsData));
-    setPackages(asArray<Package>(packsData));
-    setPurchases(asArray<Purchase>(purchasesData));
-    setAmbassador(ambData);
-    setClubPartner(clubPartnerData);
+      const [
+        segmentsData,
+        regsData,
+        packsData,
+        purchasesData,
+        ambData,
+        clubPartnerData,
+        submissionsOpenData,
+      ] = await Promise.all([
+        segmentsRes.ok ? segmentsRes.json() : [],
+        regsRes.ok ? regsRes.json() : [],
+        packRes.ok ? packRes.json() : [],
+        purchaseRes.ok ? purchaseRes.json() : [],
+        ambRes.ok ? ambRes.json() : null,
+        clubStatusRes.ok ? clubStatusRes.json() : null,
+        submissionsOpenRes.ok ? submissionsOpenRes.json() : [],
+      ]);
 
-    // Determine if club partner submissions are open
-    let submissionsOpen = false;
-    if (Array.isArray(submissionsOpenData)) {
-      const block = submissionsOpenData.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
-      submissionsOpen = block ? block.value === "true" : false;
-    }
-    setClubSubmissionsOpen(submissionsOpen);
+      setSegments(asArray<Segment>(segmentsData));
+      setRegistrations(asArray<Registration>(regsData));
+      setPackages(asArray<Package>(packsData));
+      setPurchases(asArray<Purchase>(purchasesData));
+      setAmbassador(ambData);
+      setClubPartner(clubPartnerData);
 
-    // Build profile from server response
-    if (serverProfile) {
+      // 4️⃣ Check if club partner submissions are open
+      let submissionsOpen = false;
+      if (Array.isArray(submissionsOpenData)) {
+        const block = submissionsOpenData.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
+        submissionsOpen = block ? block.value === "true" : false;
+      }
+      setClubSubmissionsOpen(submissionsOpen);
+
+      // 5️⃣ Build profile object
       const profileLike: UserProfile = {
-        $id: serverProfile.userId || "",
-        userId: serverProfile.userId || "",
-        name: serverProfile.name || "",
-        email: serverProfile.email || "",
-        institution: serverProfile.institution || "-",
-        phone: serverProfile.phone || "-",
-        address: serverProfile.address || "-",
-        classLevel: serverProfile.classLevel || "-",
-        fbLink: serverProfile.fbLink || "",
-        role: serverProfile.role || "user",
-        profilePicId: serverProfile.profilePicId,
+        $id: session.userId,
+        userId: session.userId,
+        name: session.name || "",
+        email: session.email || "",
+        institution: serverProfile?.institution || "-",
+        phone: serverProfile?.phone || "-",
+        address: serverProfile?.address || "-",
+        classLevel: serverProfile?.classLevel || "-",
+        fbLink: serverProfile?.fbLink || "",
+        role: serverProfile?.role || "user",
+        profilePicId: serverProfile?.profilePicId,
       };
 
-      if (serverProfile.profilePicId) {
+      if (serverProfile?.profilePicId) {
         try {
           const url = getStorage().getFilePreview(env.bucketId, serverProfile.profilePicId);
           setProfilePicUrl(url.toString());
@@ -148,49 +153,49 @@ const load = async () => {
       }
 
       setProfile(profileLike);
-    } else {
-      // Fallback: redirect to login if no profile
-      window.location.href = "/login";
-      return;
-    }
 
-    // --- Member lookup (unchanged) ---
-    const registrationDocs = asArray<Registration>(regsData);
-    const memberIds = Array.from(
-      new Set(
-        registrationDocs.flatMap((reg) => {
-          if (Array.isArray(reg.teamMemberUserIds)) return reg.teamMemberUserIds;
-          const parsed = parseFormData(reg.additionalFormData);
-          if (Array.isArray(parsed.teamMemberUserIds)) {
-            return parsed.teamMemberUserIds.map((value) => String(value));
-          }
-          return [];
-        })
-      )
-    );
+      // 6️⃣ Member lookup (unchanged)
+      const registrationDocs = asArray<Registration>(regsData);
+      const memberIds = Array.from(
+        new Set(
+          registrationDocs.flatMap((reg) => {
+            if (Array.isArray(reg.teamMemberUserIds)) return reg.teamMemberUserIds;
+            const parsed = parseFormData(reg.additionalFormData);
+            if (Array.isArray(parsed.teamMemberUserIds)) {
+              return parsed.teamMemberUserIds.map((value) => String(value));
+            }
+            return [];
+          })
+        )
+      );
 
-    if (memberIds.length > 0) {
-      const lookupRes = await fetch(`/api/profile/lookup?ids=${encodeURIComponent(memberIds.join(","))}`);
-      if (lookupRes.ok) {
-        const lookupData = asArray<TeamMemberProfile>(await lookupRes.json());
-        const nextMap = lookupData.reduce<Record<string, TeamMemberProfile>>((acc, profileDoc) => {
-          acc[profileDoc.userId] = profileDoc;
-          return acc;
-        }, {});
-        setMemberProfilesByUserId(nextMap);
+      if (memberIds.length > 0) {
+        const lookupRes = await fetch(`/api/profile/lookup?ids=${encodeURIComponent(memberIds.join(","))}`);
+        if (lookupRes.ok) {
+          const lookupData = asArray<TeamMemberProfile>(await lookupRes.json());
+          const nextMap = lookupData.reduce<Record<string, TeamMemberProfile>>((acc, profileDoc) => {
+            acc[profileDoc.userId] = profileDoc;
+            return acc;
+          }, {});
+          setMemberProfilesByUserId(nextMap);
+        }
+      } else {
+        setMemberProfilesByUserId({});
       }
-    } else {
-      setMemberProfilesByUserId({});
+    } catch (error) {
+      console.error("Dashboard load error:", error);
+      toast.error("Something went wrong. Please login again.");
+      window.location.href = "/login";
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Dashboard load error:", error);
-    toast.error("Something went wrong. Please login again.");
-    localStorage.removeItem("appwrite_jwt");
-    window.location.href = "/login";
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  useEffect(() => {
+    load();
+  }, []); 
+
+  
   const coveredSegmentIds = useMemo(() => {
     const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
     const covered = new Set<string>();
@@ -266,17 +271,11 @@ const load = async () => {
       toast.error(error instanceof Error ? error.message : "Failed to apply");
     }
   };
+const logout = async () => {
+  await fetch("/api/auth/clear-session", { method: "POST" });
+  window.location.href = "/login";
+};
 
-  const logout = async () => {
-    const account = getAccount();
-    try {
-      await account.deleteSession("current");
-    } catch {
-      // ignore
-    }
-    await fetch("/api/auth/clear-session", { method: "POST" });
-    window.location.href = "/login";
-  };
 
   if (loading) {
     return <main className="min-h-screen bg-[#0E0B16] text-white p-8 flex items-center justify-center font-[var(--font-anton)] text-4xl">Loading dashboard...</main>;

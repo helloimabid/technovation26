@@ -4,13 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccount, getStorage } from "@/lib/appwrite/client";
+import { getStorage } from "@/lib/appwrite/client";
 import { env } from "@/lib/env";
 
 type NavUser = {
   id: string;
   name: string;
   email: string;
+  role?: string;
 };
 
 export function Navbar() {
@@ -19,6 +20,7 @@ export function Navbar() {
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -26,28 +28,35 @@ export function Navbar() {
 
     const loadUser = async () => {
       try {
-        const me = await getAccount().get();
+        // 1️⃣ Get user from our server session
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const session = await res.json();
+          if (!mounted) return;
+          setUser({
+            id: session.userId,
+            name: session.name,
+            email: session.email,
+            role: session.role,
+          });
 
-        let nextProfilePicUrl: string | null = null;
-        try {
+          // 2️⃣ Fetch profile picture if available
           const profileRes = await fetch("/api/profile/me");
           if (profileRes.ok) {
             const profile = await profileRes.json();
             if (profile?.profilePicId) {
-              nextProfilePicUrl = getStorage().getFilePreview(env.bucketId, profile.profilePicId).toString();
+              const url = getStorage().getFilePreview(env.bucketId, profile.profilePicId).toString();
+              setProfilePicUrl(url);
             }
           }
-        } catch {
-          nextProfilePicUrl = null;
+        } else {
+          // Not authenticated
+          if (mounted) setUser(null);
         }
-
-        if (!mounted) return;
-        setUser({ id: me.$id, name: me.name, email: me.email });
-        setProfilePicUrl(nextProfilePicUrl);
       } catch {
-        if (!mounted) return;
-        setUser(null);
-        setProfilePicUrl(null);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
 
@@ -85,12 +94,6 @@ export function Navbar() {
   }, [user]);
 
   const handleSignOut = async () => {
-    try {
-      await getAccount().deleteSession("current");
-    } catch {
-      // ignore appwrite session delete failure and clear server cookie anyway
-    }
-
     await fetch("/api/auth/clear-session", { method: "POST" });
     setMenuOpen(false);
     setUser(null);
@@ -124,7 +127,9 @@ export function Navbar() {
 
         <div className="hidden items-center gap-4 rounded-full border border-white/10 bg-white/15 px-5 py-2.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white backdrop-blur-md md:flex lg:gap-7 lg:px-8 lg:py-3 lg:text-xs lg:tracking-[0.15em]">
           {navigation.map(([label, href]) => (
-            <Link key={href} href={href} className="whitespace-nowrap transition-colors hover:text-white/70">{label}</Link>
+            <Link key={href} href={href} className="whitespace-nowrap transition-colors hover:text-white/70">
+              {label}
+            </Link>
           ))}
         </div>
 
@@ -133,7 +138,12 @@ export function Navbar() {
             <div className="absolute right-0 top-12 w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl border border-white/15 bg-[#1a1a38]/95 p-2 text-white shadow-2xl backdrop-blur-xl md:hidden">
               <div className="flex flex-col gap-1">
                 {navigation.map(([label, href]) => (
-                  <Link key={href} href={href} onClick={() => setNavOpen(false)} className="rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.14em] transition-colors hover:bg-white/10">
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setNavOpen(false)}
+                    className="rounded-xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.14em] transition-colors hover:bg-white/10"
+                  >
                     {label}
                   </Link>
                 ))}
@@ -156,54 +166,56 @@ export function Navbar() {
             </span>
           </button>
 
-          {user ? (
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="w-12 h-12 rounded-full border border-white/30 bg-white/10 text-white font-semibold text-sm flex items-center justify-center overflow-hidden backdrop-blur-md"
-            aria-label="Open account menu"
-          >
-            {profilePicUrl ? (
-              <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              initials
-            )}
-          </button>
+          {!loading && user ? (
+            <div className="relative">
+              <button
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="w-12 h-12 rounded-full border border-white/30 bg-white/10 text-white font-semibold text-sm flex items-center justify-center overflow-hidden backdrop-blur-md"
+                aria-label="Open account menu"
+              >
+                {profilePicUrl ? (
+                  <img src={profilePicUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </button>
 
-          {menuOpen && (
-            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-white/15 bg-[#2f3040] text-white shadow-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-white/15">
-                <p className="text-sm font-semibold leading-tight truncate">{user.name}</p>
-                <p className="text-xs text-white/70 truncate mt-1">{user.email}</p>
-              </div>
+              {menuOpen && (
+                <div className="absolute right-0 mt-3 w-56 rounded-xl border border-white/15 bg-[#2f3040] text-white shadow-2xl overflow-hidden">
+                  <div className="px-4 py-3 border-b border-white/15">
+                    <p className="text-sm font-semibold leading-tight truncate">{user.name}</p>
+                    <p className="text-xs text-white/70 truncate mt-1">{user.email}</p>
+                  </div>
 
-              <div className="py-1">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
-                >
-                  Profile
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
+                  <div className="py-1">
+                    <Link
+                      href={user.role === "admin" ? "/admin" : "/dashboard"}
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
+                    >
+                      {user.role === "admin" ? "Admin Panel" : "Dashboard"}
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2.5 text-sm text-white/85 hover:bg-white/10 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+          ) : (
+            !loading && (
+              <Link
+                href="/login"
+                onClick={() => setNavOpen(false)}
+                className="bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#06061b] sm:px-4 sm:text-xs"
+              >
+                Login
+              </Link>
+            )
           )}
-        </div>
-      ) : (
-        <Link
-          href="/login"
-          onClick={() => setNavOpen(false)}
-          className="bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#06061b] sm:px-4 sm:text-xs"
-        >
-          Login
-        </Link>
-      )}
         </div>
       </div>
     </nav>
