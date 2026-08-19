@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getAccount, getStorage } from "@/lib/appwrite/client";
 import { Ambassador, ClubPartner, Package, Purchase, Registration, Segment, UserProfile } from "@/types/models";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
 import { PackagesSection } from "@/components/site/packages-section";
+import { getClient, getAccount, getStorage } from "@/lib/appwrite/client";
 
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
@@ -54,13 +54,21 @@ export default function DashboardPage() {
   const [clubSubmissionsOpen, setClubSubmissionsOpen] = useState<boolean | null>(null);
   const [memberProfilesByUserId, setMemberProfilesByUserId] = useState<Record<string, TeamMemberProfile>>({});
 
-  const load = async () => {
+const load = async () => {
   try {
     setLoading(true);
+
+    // 1️⃣ Restore JWT from localStorage if available
+    const client = getClient(); // imported from "@/lib/appwrite/client"
+    const storedJwt = localStorage.getItem("appwrite_jwt");
+    if (storedJwt) {
+      client.setJWT(storedJwt);
+    }
+
     const account = getAccount();
     const me = await account.get();
 
-    // Fetch all in parallel
+    // 2️⃣ Fetch all data in parallel
     const [
       profileRes,
       segmentsRes,
@@ -81,7 +89,7 @@ export default function DashboardPage() {
       fetch("/api/content-blocks?key=clubPartnerSubmissionsOpen"),
     ]);
 
-    // Parse responses
+    // 3️⃣ Parse responses
     const [
       serverProfile,
       segmentsData,
@@ -102,6 +110,7 @@ export default function DashboardPage() {
       submissionsOpenRes.ok ? submissionsOpenRes.json() : [],
     ]);
 
+    // 4️⃣ Set state
     setSegments(asArray<Segment>(segmentsData));
     setRegistrations(asArray<Registration>(regsData));
     setPackages(asArray<Package>(packsData));
@@ -109,7 +118,7 @@ export default function DashboardPage() {
     setAmbassador(ambData);
     setClubPartner(clubPartnerData);
 
-    // Determine submissions open
+    // 5️⃣ Determine if club partner submissions are open
     let submissionsOpen = false;
     if (Array.isArray(submissionsOpenData)) {
       const block = submissionsOpenData.find((b: any) => b.key === "clubPartnerSubmissionsOpen");
@@ -117,7 +126,7 @@ export default function DashboardPage() {
     }
     setClubSubmissionsOpen(submissionsOpen);
 
-    // ---- Profile and member lookup (unchanged from your existing code) ----
+    // 6️⃣ Build member lookup map from team registrations
     const registrationDocs = asArray<Registration>(regsData);
     const memberIds = Array.from(
       new Set(
@@ -146,7 +155,7 @@ export default function DashboardPage() {
       setMemberProfilesByUserId({});
     }
 
-    // Build profile object
+    // 7️⃣ Build user profile object
     const profileLike: UserProfile = {
       $id: me.$id,
       userId: me.$id,
@@ -181,6 +190,8 @@ export default function DashboardPage() {
 
     setProfile(profileLike);
   } catch (error) {
+    // On any error (including 401), clear JWT and redirect to login
+    localStorage.removeItem("appwrite_jwt");
     toast.error("Please login to continue");
     window.location.href = "/login";
   } finally {

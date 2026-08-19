@@ -7,8 +7,7 @@ let client: Client | null = null;
 let account: Account | null = null;
 let databases: Databases | null = null;
 let storage: Storage | null = null;
-
-function getClient() {
+export function getClient() {
         if (client) return client;
 
         if (!env.endpoint || !env.projectId) {
