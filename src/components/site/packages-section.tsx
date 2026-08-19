@@ -52,11 +52,6 @@ export function PackagesSection({ packages, segments, onPurchaseSuccess }: Packa
     };
   }, []);
 
-  const purchasedIds = useMemo(
-    () => new Set(purchases.map((purchase) => purchase.packageId)),
-    [purchases]
-  );
-
   const buyPackage = async (pack: Package) => {
     try {
       setBuyingPackageId(pack.$id);
@@ -89,7 +84,7 @@ export function PackagesSection({ packages, segments, onPurchaseSuccess }: Packa
         throw new Error(data.error ?? "Failed to purchase package");
       }
 
-      toast.success("Package purchased. You can now use this package for included segments.");
+      toast.success("Package purchased. Awaiting admin approval.");
       const purchase = data as Purchase;
       setPurchases((prev) => [...prev, purchase]);
       setCheckoutPackageId(null);
@@ -124,13 +119,28 @@ export function PackagesSection({ packages, segments, onPurchaseSuccess }: Packa
             const includedSegments = segments.filter((segment) => includedIds.includes(segment.$id));
             const combinedCost = includedSegments.reduce((sum, segment) => sum + Number(segment.fee ?? 0), 0);
             const savings = combinedCost > pack.price ? combinedCost - pack.price : 0;
-            const alreadyPurchased = purchasedIds.has(pack.$id);
+            const userPurchase = purchases.find((p) => p.packageId === pack.$id);
+            const purchaseStatus = userPurchase?.status;
+            const isPurchased = !!userPurchase;
+            const isApproved = purchaseStatus === "approved";
+            const isPending = purchaseStatus === "pending";
+            const isRejected = purchaseStatus === "rejected";
             const isBusy = buyingPackageId === pack.$id;
             const isCheckoutOpen = checkoutPackageId === pack.$id;
             const needsTransaction = Number(pack.price) > 0;
+
+            let buttonText = "Checkout";
+            let buttonDisabled = loadingAuth || isPurchased || isBusy;
+            if (isPurchased) {
+              if (isApproved) buttonText = "Approved ✓";
+              else if (isPending) buttonText = "Pending";
+              else if (isRejected) buttonText = "Rejected ✗";
+              buttonDisabled = true;
+            }
+
             const canSubmit =
               !loadingAuth &&
-              !alreadyPurchased &&
+              !isPurchased &&
               !isBusy &&
               (!needsTransaction || transactionId.trim().length >= 6);
 
@@ -142,6 +152,12 @@ export function PackagesSection({ packages, segments, onPurchaseSuccess }: Packa
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-white">{pack.name}</h3>
                   <p className="text-[#6972fd] font-[var(--font-anton)] text-2xl">{pack.price} BDT</p>
+
+                  {isPurchased && (
+                    <div className={`text-xs font-bold uppercase tracking-wider ${isApproved ? "text-emerald-400" : isPending ? "text-yellow-400" : "text-red-400"}`}>
+                      Status: {isApproved ? "Approved" : isPending ? "Pending Admin Approval" : "Rejected"}
+                    </div>
+                  )}
 
                   {includedSegments.length > 0 ? (
                     <div>
@@ -177,16 +193,20 @@ export function PackagesSection({ packages, segments, onPurchaseSuccess }: Packa
                       window.location.href = "/login";
                       return;
                     }
+                    if (isPurchased) {
+                      toast.info(`Purchase is ${purchaseStatus}`);
+                      return;
+                    }
                     setCheckoutPackageId((prev) => (prev === pack.$id ? null : pack.$id));
                     setTransactionId("");
                   }}
-                  disabled={loadingAuth || alreadyPurchased || isBusy}
+                  disabled={buttonDisabled}
                   className="mt-1 w-full rounded-xl bg-white/5 hover:bg-[#6972fd] border border-white/10 text-white/80 hover:text-white py-3 text-xs font-bold uppercase tracking-[0.16em] transition disabled:opacity-40 disabled:hover:bg-white/5"
                 >
-                  {alreadyPurchased ? "Purchased" : isBusy ? "Processing..." : "Checkout"}
+                  {buttonText}
                 </button>
 
-                {isCheckoutOpen && !alreadyPurchased ? (
+                {isCheckoutOpen && !isPurchased ? (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-3">
                     <p className="text-[11px] uppercase tracking-[0.14em] text-white/60">Package Checkout</p>
                     {needsTransaction ? (

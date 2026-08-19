@@ -1,3 +1,5 @@
+// app/api/purchases/route.ts
+
 import { ID, Query } from "node-appwrite";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/appwrite/server";
@@ -12,7 +14,6 @@ function parseIncludedSegmentIds(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.map((item) => String(item));
   }
-
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value) as unknown;
@@ -24,7 +25,6 @@ function parseIncludedSegmentIds(value: unknown): string[] {
       return [];
     }
   }
-
   return [];
 }
 
@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
     }
 
     const paymentTransactionId = String(body.paymentTransactionId ?? "").trim();
-
     const { databases } = getAdminClient();
 
     const packageDoc = await databases.getDocument(
@@ -74,7 +73,6 @@ export async function POST(req: NextRequest) {
       if (!packageBkashNumber) {
         return NextResponse.json({ error: "Package payment is not configured yet." }, { status: 400 });
       }
-
       if (paymentTransactionId.length < 6) {
         return NextResponse.json({ error: "Please provide a valid bKash transaction ID." }, { status: 400 });
       }
@@ -90,6 +88,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Already purchased" }, { status: 409 });
     }
 
+    // 👇 Set status to "pending"
     const created = await databases.createDocument(
       env.databaseId,
       env.collections.purchases,
@@ -98,6 +97,7 @@ export async function POST(req: NextRequest) {
         userId: auth.session.userId,
         packageId: body.packageId,
         paymentTransactionId: paymentTransactionId || undefined,
+        status: "pending",   // 👈 new
       }
     );
 
@@ -115,5 +115,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Purchases are not enabled." }, { status: 400 });
     }
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// DELETE (unchanged) ...
+export async function DELETE(req: NextRequest) {
+  const auth = await requireUser();
+  if (auth.error || !auth.session) return auth.error;
+  try {
+    const id = req.nextUrl.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    const { databases } = getAdminClient();
+    await databases.deleteDocument(env.databaseId, env.collections.purchases, id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed" }, { status: 500 });
   }
 }

@@ -158,29 +158,30 @@ export async function POST(req: NextRequest) {
     let packageCoverage: { packageId: string; packageName: string } | null = null;
 
     if (segment.isPaid) {
-      const purchases = await databases.listDocuments(env.databaseId, env.collections.purchases, [
-        Query.equal("userId", auth.session.userId),
-      ]);
+  const purchases = await databases.listDocuments(env.databaseId, env.collections.purchases, [
+    Query.equal("userId", auth.session.userId),
+    Query.equal("status", "approved"),   
+  ]);
 
-      if (purchases.total > 0) {
-        const purchasedPackageIds = purchases.documents.map((doc) => String(doc.packageId));
-        const packageDocs = await databases.listDocuments(env.databaseId, env.collections.packages, [
-          Query.equal("$id", purchasedPackageIds),
-        ]);
+  if (purchases.total > 0) {
+    const purchasedPackageIds = purchases.documents.map((doc) => String(doc.packageId));
+    const packageDocs = await databases.listDocuments(env.databaseId, env.collections.packages, [
+      Query.equal("$id", purchasedPackageIds),
+    ]);
 
-        const found = packageDocs.documents.find((pkg) => {
-          const included = parseIncludedSegmentIds((pkg as unknown as Record<string, unknown>).includedSegmentIds);
-          return included.includes(parsed.data.segmentId);
-        });
+    const found = packageDocs.documents.find((pkg) => {
+      const included = parseIncludedSegmentIds((pkg as unknown as Record<string, unknown>).includedSegmentIds);
+      return included.includes(parsed.data.segmentId);
+    });
 
-        if (found) {
-          packageCoverage = {
-            packageId: String(found.$id),
-            packageName: String((found as unknown as Record<string, unknown>).name ?? "Package"),
-          };
-        }
-      }
+    if (found) {
+      packageCoverage = {
+        packageId: String(found.$id),
+        packageName: String((found as unknown as Record<string, unknown>).name ?? "Package"),
+      };
     }
+  }
+}
 
     if (segment.isPaid) {
       if (!packageCoverage && (!segment.bkashNumber || segment.bkashNumber.trim() === "")) {

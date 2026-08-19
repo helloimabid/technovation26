@@ -81,7 +81,9 @@ export interface Purchase {
   userId: string;
   packageId: string;
   paymentTransactionId?: string;
+  status?: "pending" | "approved" | "rejected";   
 }
+
 
 export interface ContentBlock {
   $id: string;

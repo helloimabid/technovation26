@@ -190,19 +190,19 @@ export default function DashboardPage() {
     load();
   }, []); 
 
+const coveredSegmentIds = useMemo(() => {
+  const approvedPurchases = purchases.filter((p) => p.status === "approved"); // 👈 filter
+  const purchasedIds = new Set(approvedPurchases.map((purchase) => purchase.packageId));
+  const covered = new Set<string>();
 
-  const coveredSegmentIds = useMemo(() => {
-    const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
-    const covered = new Set<string>();
+  packages.forEach((pack) => {
+    if (!purchasedIds.has(pack.$id)) return;
+    const included = Array.isArray(pack.includedSegmentIds) ? pack.includedSegmentIds : [];
+    included.forEach((segmentId) => covered.add(segmentId));
+  });
 
-    packages.forEach((pack) => {
-      if (!purchasedIds.has(pack.$id)) return;
-      const included = Array.isArray(pack.includedSegmentIds) ? pack.includedSegmentIds : [];
-      included.forEach((segmentId) => covered.add(segmentId));
-    });
-
-    return covered;
-  }, [packages, purchases]);
+  return covered;
+}, [packages, purchases]);
 
   const registeredSegmentIds = useMemo(
     () => new Set(registrations.map((r) => r.segmentId)),
