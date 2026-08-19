@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Countdown } from "@/components/site/countdown";
+import { AutoFitText } from "@/components/site/auto-fit-text";
 import { motion } from "framer-motion";
 
 export function Hero({
@@ -45,9 +46,14 @@ export function Hero({
         </motion.p>
 
         <div className="flex flex-col items-start md:items-center w-full mb-8 md:mb-12">
-          <h1 className="w-full max-w-full break-words font-[var(--font-anton)] text-[clamp(3.5rem,14vw,11rem)] leading-[0.9] uppercase tracking-normal text-white animate-hero-rise drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <AutoFitText
+            as="h1"
+            maxSize={176}
+            minSize={20}
+            className="max-w-full font-[var(--font-anton)] leading-[0.9] uppercase tracking-normal text-white animate-hero-rise drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+          >
             {title}
-          </h1>
+          </AutoFitText>
         </div>
 
         <motion.div 

@@ -28,7 +28,9 @@ h2,
 h3,
 h4,
 p {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-wrap: balance;
 }
 
 @keyframes hero-rise {
