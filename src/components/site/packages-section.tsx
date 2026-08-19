@@ -8,9 +8,10 @@ import { Package, Purchase, Segment } from "@/types/models";
 type PackagesSectionProps = {
   packages: Package[];
   segments: Segment[];
+  onPurchaseSuccess?: (purchase: Purchase) => void;
 };
 
-export function PackagesSection({ packages, segments }: PackagesSectionProps) {
+export function PackagesSection({ packages, segments, onPurchaseSuccess }: PackagesSectionProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
@@ -51,7 +52,10 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
     };
   }, []);
 
-  const purchasedIds = useMemo(() => new Set(purchases.map((purchase) => purchase.packageId)), [purchases]);
+  const purchasedIds = useMemo(
+    () => new Set(purchases.map((purchase) => purchase.packageId)),
+    [purchases]
+  );
 
   const buyPackage = async (pack: Package) => {
     try {
@@ -86,9 +90,11 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
       }
 
       toast.success("Package purchased. You can now use this package for included segments.");
-      setPurchases((prev) => [...prev, data as Purchase]);
+      const purchase = data as Purchase;
+      setPurchases((prev) => [...prev, purchase]);
       setCheckoutPackageId(null);
       setTransactionId("");
+      onPurchaseSuccess?.(purchase);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to purchase package");
     } finally {
@@ -104,7 +110,9 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
     <section className="py-14 md:py-16 px-6 md:px-12 border-b border-white/5">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-[var(--font-anton)] uppercase tracking-wider text-white">Package Deals</h2>
+          <h2 className="text-3xl md:text-4xl font-[var(--font-anton)] uppercase tracking-wider text-white">
+            Package Deals
+          </h2>
           <p className="text-white/70 mt-3 max-w-2xl mx-auto">
             Buy one package and use it across multiple included segments at a lower combined cost.
           </p>
@@ -120,20 +128,32 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
             const isBusy = buyingPackageId === pack.$id;
             const isCheckoutOpen = checkoutPackageId === pack.$id;
             const needsTransaction = Number(pack.price) > 0;
-            const canSubmit = !loadingAuth && !alreadyPurchased && !isBusy && (!needsTransaction || transactionId.trim().length >= 6);
+            const canSubmit =
+              !loadingAuth &&
+              !alreadyPurchased &&
+              !isBusy &&
+              (!needsTransaction || transactionId.trim().length >= 6);
 
             return (
-              <article key={pack.$id} className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
+              <article
+                key={pack.$id}
+                className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 flex flex-col gap-4"
+              >
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold text-white">{pack.name}</h3>
                   <p className="text-[#6972fd] font-[var(--font-anton)] text-2xl">{pack.price} BDT</p>
 
                   {includedSegments.length > 0 ? (
                     <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/50 mb-2">Includes Segments</p>
+                      <p className="text-[11px] uppercase tracking-[0.16em] text-white/50 mb-2">
+                        Includes Segments
+                      </p>
                       <div className="flex flex-wrap gap-1.5">
                         {includedSegments.map((segment) => (
-                          <span key={`${pack.$id}-${segment.$id}`} className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/75">
+                          <span
+                            key={`${pack.$id}-${segment.$id}`}
+                            className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/75"
+                          >
                             {segment.name}
                           </span>
                         ))}
@@ -142,7 +162,9 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
                   ) : null}
 
                   {savings > 0 ? (
-                    <p className="text-xs text-emerald-300">Bundle savings: {savings} BDT compared to segment total</p>
+                    <p className="text-xs text-emerald-300">
+                      Bundle savings: {savings} BDT compared to segment total
+                    </p>
                   ) : null}
 
                   <p className="text-sm text-white/65 pt-1">{pack.benefits}</p>
@@ -171,7 +193,9 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
                       <>
                         <p className="text-xs text-white/70">
                           Send <span className="font-semibold text-white">{pack.price} BDT</span> to bKash number:
-                          <span className="ml-1 font-semibold text-[#8dd8ff]">{pack.bkashNumber || "Not configured"}</span>
+                          <span className="ml-1 font-semibold text-[#8dd8ff]">
+                            {pack.bkashNumber || "Not configured"}
+                          </span>
                         </p>
                         <input
                           value={transactionId}
@@ -181,7 +205,9 @@ export function PackagesSection({ packages, segments }: PackagesSectionProps) {
                         />
                       </>
                     ) : (
-                      <p className="text-xs text-white/70">This package is free. Confirm checkout to complete the purchase.</p>
+                      <p className="text-xs text-white/70">
+                        This package is free. Confirm checkout to complete the purchase.
+                      </p>
                     )}
 
                     <div className="flex gap-2">

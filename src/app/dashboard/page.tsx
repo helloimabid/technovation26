@@ -8,6 +8,7 @@ import { Ambassador, Package, Purchase, Registration, Segment, UserProfile } fro
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { env } from "@/lib/env";
+import { PackagesSection } from "@/components/site/packages-section";
 
 type FormDataRecord = Record<string, unknown>;
 type TeamMemberProfile = {
@@ -156,7 +157,7 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  const coveredSegmentIds = useMemo(() => {
+   const coveredSegmentIds = useMemo(() => {
     const purchasedIds = new Set(purchases.map((purchase) => purchase.packageId));
     const covered = new Set<string>();
 
@@ -169,7 +170,10 @@ export default function DashboardPage() {
     return covered;
   }, [packages, purchases]);
 
-  const registeredSegmentIds = useMemo(() => new Set(registrations.map((r) => r.segmentId)), [registrations]);
+  const registeredSegmentIds = useMemo(
+    () => new Set(registrations.map((r) => r.segmentId)),
+    [registrations]
+  );
 
   const unregister = async (id: string) => {
     const res = await fetch(`/api/registrations?id=${id}`, { method: "DELETE" });
@@ -182,6 +186,7 @@ export default function DashboardPage() {
     toast.success("Unregistered");
     load();
   };
+
 
   const purchase = async (packageId: string) => {
     const res = await fetch("/api/purchases", {
@@ -228,7 +233,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E0B16] text-white flex flex-col font-[var(--font-inter)] selection:bg-[#6972fd] selection:text-white pb-12 relative overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[#0E0B16] text-white flex flex-col font-[var(--font-inter)] selection:bg-[#6972fd] selection:text-white pb-12 relative">
       {/* Background Ambience */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[50%] bg-[#6972fd] opacity-5 blur-[150px] rounded-full pointer-events-none transition-transform duration-1000 ease-in-out"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#25203A] opacity-30 blur-[130px] rounded-full pointer-events-none transition-transform duration-1000 ease-in-out"></div>
@@ -239,7 +244,7 @@ export default function DashboardPage() {
       <div className="flex-1 w-full max-w-[1100px] mx-auto px-4 sm:px-6 py-6 md:py-10 space-y-12 relative z-10 mt-16 md:mt-24">
           
         {/* HERO PROFILE CARD */}
-        <div className="relative rounded-[2rem] overflow-hidden p-8 sm:p-10 md:p-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-8 shadow-2xl border border-white/10 group transition-all duration-500 hover:border-[#6972fd]/40 bg-[#161224]/80 backdrop-blur-sm" style={{ background: "linear-gradient(145deg, rgba(28,23,43,0.9) 0%, rgba(13,10,20,0.9) 100%)" }}>
+        <div className="relative rounded-[2rem] overflow-hidden p-5 sm:p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-8 shadow-2xl border border-white/10 group transition-all duration-500 hover:border-[#6972fd]/40 bg-[#161224]/80 backdrop-blur-sm" style={{ background: "linear-gradient(145deg, rgba(28,23,43,0.9) 0%, rgba(13,10,20,0.9) 100%)" }}>
             
             <div className="absolute top-0 right-0 w-[120%] md:w-[60%] h-full pointer-events-none opacity-[0.03] transform translate-x-1/4 scale-150 z-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
@@ -296,7 +301,7 @@ export default function DashboardPage() {
                   {registrations.length === 0 ? (
                       <p className="text-white/40 font-medium tracking-wide">You haven&apos;t participated in any event yet.</p>
                   ) : (
-                      <div className="w-full grid sm:grid-cols-2 lg:grid-cols-3 gap-5 text-left relative z-10">
+                      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 text-left relative z-10">
                         {registrations.map((reg) => {
                           const seg = segments.find((s) => s.$id === reg.segmentId);
                           const data = parseFormData(reg.additionalFormData);
@@ -321,7 +326,7 @@ export default function DashboardPage() {
                           const isTeamLead = reg.userId === profile?.userId;
 
                           return (
-                              <div key={reg.$id} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:bg-white/[0.05] hover:border-white/10 shadow-lg hover:shadow-xl group">
+                              <div key={reg.$id} className="min-w-0 bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-all duration-300 hover:bg-white/[0.05] hover:border-white/10 shadow-lg hover:shadow-xl group">
                                   <div className="mb-4 space-y-2">
                                       <div className="flex items-center justify-between gap-2">
                                           <p className="font-bold text-lg text-white/90 font-[var(--font-anton)] tracking-wide">{seg?.name ?? reg.segmentId}</p>
@@ -451,55 +456,12 @@ export default function DashboardPage() {
 
         {/* BOTTOM SECTIONS: PACKAGES & SEGMENTS */}
         <div className="pt-10 mb-12 space-y-10">
-            {packages.length > 0 && (
-                <section className="bg-[#120E1C]/60 border border-white/[0.05] shadow-[0_8px_30px_rgba(0,0,0,0.3)] rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm">
-                  <div className="flex flex-col items-center gap-3 mb-8">
-                      <h2 className="text-xl sm:text-2xl font-[var(--font-inter)] font-semibold text-white/90 tracking-wide">Available Packages</h2>
-                      <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-transparent via-[#6972fd] to-transparent rounded-full opacity-70"></div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {packages.map((pack) => {
-                        const already = purchases.some((p) => p.packageId === pack.$id);
-                        const includedSegmentIds = Array.isArray(pack.includedSegmentIds) ? pack.includedSegmentIds : [];
-                        const includedSegments = segments.filter((segment) => includedSegmentIds.includes(segment.$id));
-                        const combinedCost = includedSegments.reduce((total, segment) => total + Number(segment.fee ?? 0), 0);
-                        const savings = combinedCost > pack.price ? combinedCost - pack.price : 0;
-                        return (
-                          <article key={pack.$id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col gap-4 hover:bg-white/[0.04] transition-all duration-300 hover:border-white/10">
-                            <div className="flex-1 space-y-2">
-                                <h3 className="font-bold text-lg text-white/90">{pack.name}</h3>
-                                <p className="text-[#6972fd] font-[var(--font-anton)] text-2xl tracking-wide">{pack.price} BDT</p>
-                                {includedSegments.length > 0 ? (
-                                  <div className="pt-1">
-                                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/45 font-bold mb-2">Includes Segments</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {includedSegments.map((segment) => (
-                                        <span key={`${pack.$id}-${segment.$id}`} className="rounded-full border border-white/15 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/70">
-                                          {segment.name}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : null}
-                                {savings > 0 ? (
-                                  <p className="text-xs text-emerald-300/90">Bundle savings: {savings} BDT compared to segment total</p>
-                                ) : null}
-                                <p className="text-xs text-white/40 leading-relaxed pt-2">{pack.benefits}</p>
-                            </div>
-                            <button
-                              onClick={() => purchase(pack.$id)}
-                              disabled={already}
-                              className="w-full bg-white/5 hover:bg-[#6972fd] text-white/70 hover:text-white py-3 rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold disabled:opacity-30 disabled:hover:bg-white/5 transition-colors border border-white/10 mt-2"
-                            >
-                              {already ? "Purchased" : "Purchase Package"}
-                            </button>
-                          </article>
-                        );
-                      })}
-                  </div>
-                </section>
-            )}
-
+               {/* PACKAGES — using shared component with proper bKash checkout */}
+        <PackagesSection
+          packages={packages}
+          segments={segments}
+          onPurchaseSuccess={(purchase) => setPurchases((prev) => [...prev, purchase])}
+        />
             {segments.length > 0 && (
                 <section className="bg-[#120E1C]/60 border border-white/[0.05] shadow-[0_8px_30px_rgba(0,0,0,0.3)] rounded-[2rem] p-6 sm:p-10 backdrop-blur-sm">
                   <div className="flex flex-col items-center gap-3 mb-8">

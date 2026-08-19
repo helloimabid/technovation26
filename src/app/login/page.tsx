@@ -83,8 +83,8 @@ export default function LoginPage() {
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[55%] bg-[#6972fd] opacity-10 blur-[140px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-[-20%] right-[-10%] w-[55%] h-[50%] bg-[#25203A] opacity-40 blur-[120px] rounded-full pointer-events-none"></div>
       <Navbar />
-      <div className="relative z-10 flex-1 w-full px-6 py-10 mt-16 md:mt-24 md:px-12">
-      <div className="mx-auto w-full max-w-5xl grid lg:grid-cols-2 rounded-[2rem] border border-white/10 bg-black/20 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+      <div className="relative z-10 flex-1 w-full px-3 sm:px-6 py-8 sm:py-10 mt-14 md:mt-24 md:px-12">
+      <div className="mx-auto w-full max-w-5xl grid lg:grid-cols-2 rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 bg-black/20 backdrop-blur-xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
         <section className="hidden lg:flex flex-col justify-between p-10 bg-[radial-gradient(circle_at_20%_20%,rgba(105,114,253,0.22),transparent_45%),linear-gradient(160deg,#161224_0%,#0a0912_60%,#06061b_100%)] border-r border-white/10">
           <div>
             <p className="font-[var(--font-roboto-mono)] text-xs tracking-[0.28em] uppercase text-[#9ea4ff]">Tecnovation 2026</p>
@@ -94,7 +94,7 @@ export default function LoginPage() {
         
         </section>
 
-        <section className="p-7 sm:p-10 md:p-12 bg-[#0d0a17]/90">
+        <section className="p-5 sm:p-7 md:p-12 bg-[#0d0a17]/90">
           <div className="mb-8">
             <p className="font-[var(--font-roboto-mono)] text-[11px] tracking-[0.28em] uppercase text-white/50">Account Portal</p>
             <h2 className="font-[var(--font-anton)] text-5xl tracking-[0.04em] mt-2">Login</h2>
