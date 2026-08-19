@@ -13,5 +13,6 @@ export const env = {
     packages: process.env.APPWRITE_COL_PACKAGES || "packages",
     purchases: process.env.APPWRITE_COL_PURCHASES || "purchases",
     contentBlocks: process.env.APPWRITE_COL_CONTENT_BLOCKS || "content_blocks",
+    contactMessages: process.env.APPWRITE_COL_CONTACT_MESSAGES || "contact_messages",
   },
 };
