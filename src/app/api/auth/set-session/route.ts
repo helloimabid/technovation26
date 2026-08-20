@@ -7,21 +7,23 @@ import { env } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as { userId: string; secret: string };
+    const body = (await req.json()) as { userId?: string };
 
-    if (!body.userId || !body.secret) {
-      return NextResponse.json({ error: "Missing verification token" }, { status: 400 });
+    if (!body.userId) {
+      return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }
 
-    const { account, users, databases } = getAdminClient();
+    const { users, databases } = getAdminClient();
 
-    // Complete the verification with the admin API key. Doing this server-side
-    // (instead of the browser SDK) avoids the "guests missing scope" error you
-    // get when the link is opened in a browser with no active Appwrite session,
-    // e.g. clicking the link from an email client on a fresh tab/device.
-    await account.updateVerification(body.userId, body.secret);
-
+    // Source of truth is the admin API, not whatever the client claims.
     const user = await users.get(body.userId);
+
+    if (!user.emailVerification) {
+      return NextResponse.json(
+        { error: "Email not verified yet" },
+        { status: 403 }
+      );
+    }
 
     const profile = await databases.listDocuments(
       env.databaseId,
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const role = (profile.documents[0]?.role as "admin" | "user" | undefined) ?? "user";
     const token = await createSessionToken({
-      userId: body.userId,
+      userId: user.$id,
       email: user.email ?? "",
       name: user.name ?? "",
       role,
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, role });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Verification failed" },
+      { error: error instanceof Error ? error.message : "Failed to start session" },
       { status: 400 }
     );
   }
