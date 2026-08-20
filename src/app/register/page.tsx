@@ -35,6 +35,7 @@ export default function SignupPage() {
         const account = getAccount();
         const me = await account.get();
         if (me.emailVerification && mounted) {
+<<<<<<< HEAD
           const sessionRes = await fetch("/api/auth/set-session", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -50,6 +51,9 @@ export default function SignupPage() {
             await account.deleteSession("current");
             if (mounted) setCheckingAuth(false);
           }
+=======
+          router.replace("/dashboard");
+>>>>>>> f124b0fec9449d0a25dbd7faa61b6848d65cd099
         } else {
           await account.deleteSession("current");
           if (mounted) setCheckingAuth(false);
