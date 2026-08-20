@@ -6,6 +6,7 @@ import { Navbar } from "@/components/site/navbar";
 import { ReferralCapture } from "@/components/site/referral-capture";
 import { SegmentsGrid } from "@/components/site/segments-grid";
 import { getPublicData } from "@/lib/public-data";
+import { SponsorsMarquee } from "@/components/site/sponsors-marquee";
 
 export default async function Home() {
   const { segments, content } = await getPublicData();
@@ -17,6 +18,7 @@ export default async function Home() {
       <Hero title={content.heroTitle} dateLabel={content.heroDateLabel} targetDate={content.eventDateISO} ctaLabel={content.heroPrimaryCtaLabel} />
       <AboutSection highlightTitle={content.aboutHighlightTitle} highlightBody={content.aboutHighlightBody} teaserCaption={content.aboutTeaserCaption} />
       <SegmentsGrid segments={segments} ctaLabel={content.eventsCtaLabel} />
+      {/* <SponsorsMarquee sponsors={content.sponsors} /> */}
       <FaqSection items={content.faq} title={content.faqTitle} description={content.faqDescription} />
       <Footer
         brandText={content.footerBrandText}

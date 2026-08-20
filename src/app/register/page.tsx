@@ -33,9 +33,26 @@ export default function SignupPage() {
     const checkAuth = async () => {
       try {
         const account = getAccount();
-        await account.get();
-        if (mounted) {
-          router.replace("/dashboard");
+        const me = await account.get();
+        if (me.emailVerification && mounted) {
+          const sessionRes = await fetch("/api/auth/set-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: me.$id, email: me.email, name: me.name }),
+          });
+
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            if (mounted) {
+              router.replace(sessionData.role === "admin" ? "/admin" : "/dashboard");
+            }
+          } else {
+            await account.deleteSession("current");
+            if (mounted) setCheckingAuth(false);
+          }
+        } else {
+          await account.deleteSession("current");
+          if (mounted) setCheckingAuth(false);
         }
       } catch {
         if (mounted) {
@@ -84,6 +101,10 @@ export default function SignupPage() {
       await account.createEmailPasswordSession(values.email, values.password);
       const me = await account.get();
 
+      // Keep the Appwrite session for the verification callback, but do not
+      // create the app session until the email has been verified.
+      await account.createVerification(`${window.location.origin}/verify-email`);
+
       // Upload profile picture now that the session exists
       const fileUpload = await storage.createFile(
         env.bucketId || "profile_pics",
@@ -113,14 +134,8 @@ export default function SignupPage() {
       const profileData = await profileRes.json();
       if (!profileRes.ok) throw new Error(profileData.error ?? "Failed to create profile");
 
-      await fetch("/api/auth/set-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: me.$id, email: me.email, name: me.name }),
-      });
-
-      toast.success("Account created successfully!");
-      router.push("/dashboard");
+      toast.success("Account created. Check your email to verify it.");
+      router.push(`/verify-email?email=${encodeURIComponent(me.email)}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Signup failed");
     } finally {

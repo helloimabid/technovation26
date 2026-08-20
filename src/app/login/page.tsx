@@ -35,9 +35,30 @@ export default function LoginPage() {
           // client.setJWT(storedJwt);
         }
         const account = getAccount();
-        await account.get();
-        if (mounted) {
-          router.replace("/dashboard");
+        const me = await account.get();
+        if (me.emailVerification && mounted) {
+          // An Appwrite session exists, but our own signed session cookie
+          // (tv26_session) may not be set yet. Without this call, the
+          // middleware keeps redirecting /dashboard -> /login -> /dashboard.
+          const sessionRes = await fetch("/api/auth/set-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: me.$id, email: me.email, name: me.name }),
+          });
+
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            if (mounted) {
+              router.replace(sessionData.role === "admin" ? "/admin" : "/dashboard");
+            }
+          } else {
+            // Couldn't establish our own session; don't loop, let the user log in again.
+            await account.deleteSession("current");
+            if (mounted) setCheckingAuth(false);
+          }
+        } else {
+          await account.deleteSession("current");
+          if (mounted) setCheckingAuth(false);
         }
       } catch {
         if (mounted) {
@@ -61,6 +82,11 @@ export default function LoginPage() {
      
 
       const me = await account.get();
+
+      if (!me.emailVerification) {
+        await account.deleteSession("current");
+        throw new Error("Please verify your email before logging in. Check your inbox for the verification link.");
+      }
 
       const sessionRes = await fetch("/api/auth/set-session", {
         method: "POST",

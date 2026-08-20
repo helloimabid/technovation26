@@ -112,7 +112,20 @@ export async function getPublicData() {
       schedule: defaultSchedule,
     },
   };
+// inside getPublicData, after fetching blocks
+// const sponsorsRaw = contentMap.sponsors;
+// let sponsors: { name: string; logoFileId: string; url?: string }[] = [];
+// if (sponsorsRaw) {
+//   try {
+//     const parsed = JSON.parse(sponsorsRaw);
+//     if (Array.isArray(parsed)) sponsors = parsed;
+//   } catch {}
+// }
 
+// return {
+//   // ... existing
+//   sponsors,
+// };
   if (!env.endpoint || !env.projectId || !env.apiKey || !env.databaseId) {
     return fallback;
   }
