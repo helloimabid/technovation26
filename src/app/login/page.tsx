@@ -37,7 +37,6 @@ export default function LoginPage() {
         const account = getAccount();
         const me = await account.get();
         if (me.emailVerification && mounted) {
-<<<<<<< HEAD
           // An Appwrite session exists, but our own signed session cookie
           // (tv26_session) may not be set yet. Without this call, the
           // middleware keeps redirecting /dashboard -> /login -> /dashboard.
@@ -57,9 +56,6 @@ export default function LoginPage() {
             await account.deleteSession("current");
             if (mounted) setCheckingAuth(false);
           }
-=======
-          router.replace("/dashboard");
->>>>>>> f124b0fec9449d0a25dbd7faa61b6848d65cd099
         } else {
           await account.deleteSession("current");
           if (mounted) setCheckingAuth(false);
