@@ -35,9 +35,12 @@ export default function LoginPage() {
           // client.setJWT(storedJwt);
         }
         const account = getAccount();
-        await account.get();
-        if (mounted) {
+        const me = await account.get();
+        if (me.emailVerification && mounted) {
           router.replace("/dashboard");
+        } else {
+          await account.deleteSession("current");
+          if (mounted) setCheckingAuth(false);
         }
       } catch {
         if (mounted) {
@@ -61,6 +64,11 @@ export default function LoginPage() {
      
 
       const me = await account.get();
+
+      if (!me.emailVerification) {
+        await account.deleteSession("current");
+        throw new Error("Please verify your email before logging in. Check your inbox for the verification link.");
+      }
 
       const sessionRes = await fetch("/api/auth/set-session", {
         method: "POST",
