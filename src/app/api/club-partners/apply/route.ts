@@ -6,7 +6,11 @@ import { requireUser } from "@/lib/api-auth";
 
 function makeClubCode(name: string, seed: string) {
   const clean = name.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 4) || "CLUB";
-  return `CP-${clean}-${seed.slice(-3).toUpperCase()}`;
+  return `CLB-${clean}-${seed.slice(-3).toUpperCase()}`;
+}
+
+function serialize<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
 }
 
 export async function POST() {
@@ -16,27 +20,24 @@ export async function POST() {
   try {
     const { databases } = getAdminClient();
 
-    // Check if submissions are open
-    const settings = await databases.listDocuments(env.databaseId, env.collections.contentBlocks, [
-      Query.equal("key", "clubPartnerSubmissionsOpen"),
+    const caExisting = await databases.listDocuments(env.databaseId, env.collections.ambassadors, [
+      Query.equal("userId", auth.session.userId),
       Query.limit(1),
     ]);
-    const isOpen = settings.documents[0]?.value === "true";
 
-    if (!isOpen) {
-      return NextResponse.json({ error: "Club Partner submissions are currently closed." }, { status: 403 });
+    if (caExisting.total > 0) {
+      return NextResponse.json({ error: "You have already applied for the CA program." }, { status: 409 });
     }
 
-    // Check if user already applied
     const existing = await databases.listDocuments(env.databaseId, env.collections.clubPartners, [
       Query.equal("userId", auth.session.userId),
       Query.limit(1),
     ]);
+
     if (existing.total > 0) {
-      return NextResponse.json({ error: "You have already applied for Club Partner." }, { status: 409 });
+      return NextResponse.json({ error: "You have already applied for the Club Partner program." }, { status: 409 });
     }
 
-    // Get user profile for name
     const profile = await databases.listDocuments(env.databaseId, env.collections.usersProfiles, [
       Query.equal("userId", auth.session.userId),
       Query.limit(1),
@@ -56,11 +57,8 @@ export async function POST() {
       }
     );
 
-    return NextResponse.json({ ok: true, data: created });
+    return NextResponse.json(serialize(created));
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to apply" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed" }, { status: 500 });
   }
 }

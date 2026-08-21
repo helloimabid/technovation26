@@ -3,11 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/appwrite/server";
 import { env } from "@/lib/env";
 
-function makeCaCode(name: string, seed: string) {
-  const clean = name.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 4) || "USER";
-  return `TEC-${clean}-${seed.slice(-3).toUpperCase()}`;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {
@@ -55,10 +50,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.referralCode) {
+      // Match on the code alone — CA codes exist as soon as someone applies,
+      // well before an admin approves them, so credit the referral either way.
       const ambassador = await databases.listDocuments(
         env.databaseId,
         env.collections.ambassadors,
-        [Query.equal("caCode", body.referralCode), Query.equal("status", "approved"), Query.limit(1)]
+        [Query.equal("caCode", body.referralCode), Query.limit(1)]
       );
 
       if (ambassador.total) {
@@ -70,26 +67,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const ambassadorExisting = await databases.listDocuments(
-      env.databaseId,
-      env.collections.ambassadors,
-      [Query.equal("userId", body.userId), Query.limit(1)]
-    );
-
-    if (!ambassadorExisting.total) {
-      await databases.createDocument(
+    if (body.clubPartnerCode) {
+      const clubPartner = await databases.listDocuments(
         env.databaseId,
-        env.collections.ambassadors,
-        ID.unique(),
-        {
-          userId: body.userId,
-          caCode: makeCaCode(body.name, body.userId),
-          points: 0,
-          referralsCount: 0,
-          status: "pending",
-        }
+        env.collections.clubPartners,
+        [Query.equal("clubCode", body.clubPartnerCode), Query.limit(1)]
       );
+
+      if (clubPartner.total) {
+        const doc = clubPartner.documents[0];
+        await databases.updateDocument(env.databaseId, env.collections.clubPartners, doc.$id, {
+          points: Number(doc.points ?? 0) + 10,
+          referralsCount: Number(doc.referralsCount ?? 0) + 1,
+        });
+      }
     }
+
+    // NOTE: no more auto-creating an ambassadors doc here.
+    // A user only gets an ambassador record when they explicitly
+    // hit "Apply for CA" — see /api/ambassadors/apply.
 
     return NextResponse.json({ ok: true });
   } catch (error) {
