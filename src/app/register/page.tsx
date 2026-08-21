@@ -16,16 +16,102 @@ import { Footer } from "@/components/site/footer";
 
 type FormData = z.infer<typeof signupSchema>;
 
+type CodePreview = { status: "idle" | "checking" | "valid" | "invalid"; label?: string };
+
+function ReferralPreview({ preview, kind }: { preview: CodePreview; kind: "ca" | "club" }) {
+  if (preview.status === "idle") return null;
+  if (preview.status === "checking") {
+    return <p className="text-white/40 text-xs mt-2">Checking code...</p>;
+  }
+  if (preview.status === "valid") {
+    return (
+      <p className="text-emerald-300 text-xs mt-2">
+        {kind === "ca"
+          ? `✓ This is ${preview.label || "a user"}'s Campus Ambassador code`
+          : `✓ This is ${preview.label || "a club"}'s referral code`}
+      </p>
+    );
+  }
+  return (
+    <p className="text-red-300 text-xs mt-2">
+      ✗ {kind === "ca" ? "Not a valid Campus Ambassador code" : "Not a valid Club Partner code"}
+    </p>
+  );
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [referralCode, setReferralCode] = useState("");
   const [profilePic, setProfilePic] = useState<File | null>(null);
+  const [caPreview, setCaPreview] = useState<CodePreview>({ status: "idle" });
+  const [clubPreview, setClubPreview] = useState<CodePreview>({ status: "idle" });
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormData>({
     resolver: zodResolver(signupSchema),
   });
+
+  const watchedReferralCode = watch("referralCode");
+  const watchedClubPartnerCode = watch("clubPartnerCode");
+
+  useEffect(() => {
+    const code = (watchedReferralCode ?? "").trim();
+    if (!code) {
+      setCaPreview({ status: "idle" });
+      return;
+    }
+
+    setCaPreview({ status: "checking" });
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/referral/lookup?code=${encodeURIComponent(code)}`);
+        if (!res.ok) {
+          setCaPreview({ status: "invalid" });
+          return;
+        }
+        const data = await res.json();
+        if (data.valid && data.type === "ca") {
+          setCaPreview({ status: "valid", label: data.name ?? "" });
+        } else {
+          setCaPreview({ status: "invalid" });
+        }
+      } catch {
+        setCaPreview({ status: "invalid" });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [watchedReferralCode]);
+
+  useEffect(() => {
+    const code = (watchedClubPartnerCode ?? "").trim();
+    if (!code) {
+      setClubPreview({ status: "idle" });
+      return;
+    }
+
+    setClubPreview({ status: "checking" });
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/referral/lookup?code=${encodeURIComponent(code)}`);
+        if (!res.ok) {
+          setClubPreview({ status: "invalid" });
+          return;
+        }
+        const data = await res.json();
+        if (data.valid && data.type === "club") {
+          setClubPreview({ status: "valid", label: data.name ?? "" });
+        } else {
+          setClubPreview({ status: "invalid" });
+        }
+      } catch {
+        setClubPreview({ status: "invalid" });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [watchedClubPartnerCode]);
 
   useEffect(() => {
     let mounted = true;
@@ -88,6 +174,13 @@ export default function SignupPage() {
   const onSubmit = async (values: FormData) => {
     try {
       setLoading(true);
+
+      if ((values.referralCode ?? "").trim() && caPreview.status === "invalid") {
+        throw new Error("The Campus Ambassador reference code is not valid.");
+      }
+      if ((values.clubPartnerCode ?? "").trim() && clubPreview.status === "invalid") {
+        throw new Error("The Club Partner reference code is not valid.");
+      }
 
       if (!profilePic) {
         throw new Error("Please upload a profile picture.");
@@ -217,8 +310,14 @@ export default function SignupPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input {...register("referralCode")} placeholder="CA Reference (optional)" className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 outline-none transition-all focus:border-[#6972fd] focus:ring-2 focus:ring-[#6972fd]/30" defaultValue={referralCode} />
-                <input {...register("clubPartnerCode")} placeholder="Club Partner Reference (optional)" className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 outline-none transition-all focus:border-[#6972fd] focus:ring-2 focus:ring-[#6972fd]/30" />
+                <div>
+                  <input {...register("referralCode")} placeholder="CA Reference (optional)" className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 outline-none transition-all focus:border-[#6972fd] focus:ring-2 focus:ring-[#6972fd]/30" defaultValue={referralCode} />
+                  <ReferralPreview preview={caPreview} kind="ca" />
+                </div>
+                <div>
+                  <input {...register("clubPartnerCode")} placeholder="Club Partner Reference (optional)" className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 outline-none transition-all focus:border-[#6972fd] focus:ring-2 focus:ring-[#6972fd]/30" />
+                  <ReferralPreview preview={clubPreview} kind="club" />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

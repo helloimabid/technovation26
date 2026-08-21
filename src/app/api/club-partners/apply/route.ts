@@ -1,5 +1,5 @@
 import { ID, Query } from "node-appwrite";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/appwrite/server";
 import { env } from "@/lib/env";
 import { requireUser } from "@/lib/api-auth";
@@ -13,11 +13,17 @@ function serialize<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const auth = await requireUser();
   if (auth.error || !auth.session) return auth.error;
 
   try {
+    const body = (await req.json().catch(() => ({}))) as { clubName?: string };
+    const clubName = String(body.clubName ?? "").trim();
+    if (clubName.length < 2) {
+      return NextResponse.json({ error: "Club name is required" }, { status: 400 });
+    }
+
     const { databases } = getAdminClient();
 
     const caExisting = await databases.listDocuments(env.databaseId, env.collections.ambassadors, [
@@ -50,6 +56,7 @@ export async function POST() {
       ID.unique(),
       {
         userId: auth.session.userId,
+        clubName,
         clubCode: makeClubCode(userName, auth.session.userId),
         points: 0,
         referralsCount: 0,

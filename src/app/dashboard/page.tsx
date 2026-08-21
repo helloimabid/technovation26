@@ -53,6 +53,9 @@ export default function DashboardPage() {
   const [ambassador, setAmbassador] = useState<Ambassador | null>(null);
   const [clubPartner, setClubPartner] = useState<ClubPartner | null>(null);
   const [clubSubmissionsOpen, setClubSubmissionsOpen] = useState<boolean | null>(null);
+  const [showClubModal, setShowClubModal] = useState(false);
+  const [clubNameInput, setClubNameInput] = useState("");
+  const [applyingClub, setApplyingClub] = useState(false);
   const [memberProfilesByUserId, setMemberProfilesByUserId] = useState<Record<string, TeamMemberProfile>>({});
 
   // ✅ CORRECTED load function – no direct Appwrite calls
@@ -252,10 +255,17 @@ const coveredSegmentIds = useMemo(() => {
   };
   const applyClubPartner = async () => {
     try {
-      const res = await fetch("/api/club-partners/apply", { method: "POST" });
+      setApplyingClub(true);
+      const res = await fetch("/api/club-partners/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clubName: clubNameInput }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to apply");
       toast.success("Club Partner application submitted");
+      setShowClubModal(false);
+      setClubNameInput("");
       // Reload status
       const statusRes = await fetch("/api/club-partners/status");
       if (statusRes.ok) {
@@ -264,6 +274,8 @@ const coveredSegmentIds = useMemo(() => {
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to apply");
+    } finally {
+      setApplyingClub(false);
     }
   };
 
@@ -501,6 +513,9 @@ const coveredSegmentIds = useMemo(() => {
                       {clubPartner.status}
                     </span>
                   </div>
+                  {clubPartner.clubName && (
+                    <p className="text-white/70 text-sm font-medium">{clubPartner.clubName}</p>
+                  )}
                   {clubPartner.status === "approved" && (
                     <div className="bg-black/30 border border-white/5 py-2.5 px-4 rounded-xl inline-block mt-2">
                       <span className="text-white/40 text-xs uppercase tracking-widest mr-2">Code:</span>
@@ -526,7 +541,7 @@ const coveredSegmentIds = useMemo(() => {
                 <div className="space-y-6 w-full flex flex-col items-center">
                   <p className="text-white/40 font-medium text-sm">You have not applied for Club Partner yet.</p>
                   <button
-                    onClick={applyClubPartner}
+                    onClick={() => setShowClubModal(true)}
                     className="bg-white/5 hover:bg-[#6972fd] hover:text-white text-white/70 transition-all duration-300 border border-white/10 px-8 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-lg w-full max-w-[220px] disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     Apply for Club Partner
@@ -576,6 +591,39 @@ const coveredSegmentIds = useMemo(() => {
         </div>
 
       </div>
+
+      {showClubModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={() => !applyingClub && setShowClubModal(false)}>
+          <div className="w-full max-w-md rounded-[1.5rem] border border-white/10 bg-[#161224] p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-2xl font-[var(--font-anton)] tracking-wide text-white">Apply for Club Partner</h3>
+            <p className="mt-2 text-sm text-white/50">Tell us about your club. You can only apply for one program.</p>
+            <label className="block mt-6 text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Club Name *</label>
+            <input
+              value={clubNameInput}
+              onChange={(e) => setClubNameInput(e.target.value)}
+              placeholder="e.g. Robotics Club of Dhaka"
+              maxLength={120}
+              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 outline-none transition-all focus:border-[#6972fd] focus:ring-2 focus:ring-[#6972fd]/30"
+            />
+            <div className="mt-8 flex gap-3">
+              <button
+                onClick={() => setShowClubModal(false)}
+                disabled={applyingClub}
+                className="flex-1 rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white/70 hover:bg-white/10 transition disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={applyClubPartner}
+                disabled={applyingClub || clubNameInput.trim().length < 2}
+                className="flex-1 rounded-xl bg-gradient-to-r from-[#6972fd] to-[#5660f0] py-3 text-xs font-bold uppercase tracking-[0.2em] text-white hover:brightness-110 transition disabled:opacity-40"
+              >
+                {applyingClub ? "Submitting..." : "Submit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes scan {

@@ -59,6 +59,7 @@ export interface Ambassador {
 export interface ClubPartner {
    $id: string;
  userId: string;
+  clubName?: string;
   clubCode: string;
    points: number;
    referralsCount: number;
